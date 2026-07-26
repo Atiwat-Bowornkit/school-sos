@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { INCIDENT_CATEGORIES, INCIDENT_PRIORITIES } from '@/models'
 import { useSEO } from '@/composables/useSEO'
@@ -16,6 +16,7 @@ useSEO({
 })
 
 const reportStore = useReportStore()
+onMounted(() => reportStore.reset())
 const notificationStore = useNotificationStore()
 const {
   form,
@@ -88,6 +89,7 @@ async function submit() {
         <div class="d-flex flex-wrap justify-center gap-3">
           <VBtn color="primary" :to="`/incidents/${createdIncident.id}`">เปิดรายละเอียด Incident</VBtn>
           <VBtn variant="outlined" to="/">กลับ Dashboard</VBtn>
+          <VBtn variant="tonal" @click="reportStore.reset()">แจ้งเหตุอีก</VBtn>
         </div>
       </VCardText>
     </VCard>

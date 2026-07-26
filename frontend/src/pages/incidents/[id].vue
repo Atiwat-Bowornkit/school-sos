@@ -452,6 +452,8 @@ onBeforeRouteLeave(() => incidentStore.resetSelectedIncident())
   display: grid;
   gap: 20px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .detail-label {
