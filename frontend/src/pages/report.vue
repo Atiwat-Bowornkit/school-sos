@@ -22,8 +22,6 @@ onMounted(() => reportStore.reset())
 const notificationStore = useNotificationStore()
 const {
   form,
-  imagePreview,
-  imageName,
   isSubmitting,
   error,
   createdIncident,
