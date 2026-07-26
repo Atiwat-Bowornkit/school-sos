@@ -36,7 +36,6 @@ export function createApp(containerFactory: (env: Partial<Bindings>) => Containe
         },
         tags: [
           { name: 'Incidents', description: 'Incident workflow and timeline' },
-          { name: 'AI', description: 'Incident analysis with safe fallback' },
         ],
       },
     })

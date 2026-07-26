@@ -204,7 +204,7 @@ onBeforeRouteLeave(() => incidentStore.resetSelectedIncident())
                 </div>
                 <div>
                   <div class="detail-label">
-                    AI Summary
+                    Summary
                   </div>
                   <p>{{ incident.summary }}</p>
                 </div>
@@ -228,9 +228,9 @@ onBeforeRouteLeave(() => incidentStore.resetSelectedIncident())
                 </div>
                 <div>
                   <div class="detail-label">
-                    Suggested Priority
+                    ความสำคัญ
                   </div>
-                  <IncidentPriorityChip :priority="incident.suggestedPriority" />
+                  <IncidentPriorityChip :priority="incident.confirmedPriority" />
                 </div>
                 <div>
                   <div class="detail-label">
@@ -238,18 +238,7 @@ onBeforeRouteLeave(() => incidentStore.resetSelectedIncident())
                   </div>
                   <p>{{ incident.priorityReason }}</p>
                 </div>
-                <div>
-                  <div class="detail-label">
-                    แหล่งวิเคราะห์
-                  </div>
-                  <VChip
-                    :color="incident.aiAnalysisSource === 'deepseek' ? 'primary' : 'warning'"
-                    variant="tonal"
-                    size="small"
-                  >
-                    {{ incident.aiAnalysisSource === 'deepseek' ? 'School SOS AI' : 'วิเคราะห์ด้วยระบบสำรอง' }}
-                  </VChip>
-                </div>
+
               </div>
               <div v-if="imageUrl" class="mt-5">
                 <div class="detail-label mb-2">
@@ -329,12 +318,6 @@ onBeforeRouteLeave(() => incidentStore.resetSelectedIncident())
                     หมายเหตุ
                   </div>
                   <p>{{ incident.resolutionNote }}</p>
-                </div>
-                <div>
-                  <div class="detail-label">
-                    แหล่งรายงาน
-                  </div>
-                  <p>{{ incident.aiClosureSource === 'deepseek' ? 'School SOS AI' : 'ระบบสำรอง' }}</p>
                 </div>
               </div>
               <VDivider class="my-5" />

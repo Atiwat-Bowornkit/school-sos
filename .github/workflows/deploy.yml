@@ -97,7 +97,6 @@ jobs:
         run: |
           cp wrangler.example.jsonc wrangler.jsonc
           sed -i "s/<REPLACE_WITH_D1_DATABASE_ID>/${{ secrets.D1_DATABASE_ID }}/g" wrangler.jsonc
-          sed -i "s/<REPLACE_WITH_KV_NAMESPACE_ID>/${{ secrets.KV_NAMESPACE_ID }}/g" wrangler.jsonc
 
       - name: Apply D1 migrations
         run: ./node_modules/.bin/wrangler d1 migrations apply school-sos-db --remote

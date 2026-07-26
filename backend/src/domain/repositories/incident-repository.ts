@@ -2,9 +2,17 @@ import type {
   Incident,
   IncidentFilters,
   IncidentPriority,
-  IncidentResolution,
   IncidentStatus,
 } from '../entities/incident'
+
+export interface IncidentResolution {
+  actionTaken: string
+  resolutionResult: string
+  resolutionNote?: string
+  closureSummary: string
+  resolvedAt: string
+  updatedAt: string
+}
 
 export interface IncidentRepository {
   findAll(filters?: IncidentFilters): Promise<Incident[]>

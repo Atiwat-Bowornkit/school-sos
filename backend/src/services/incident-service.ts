@@ -11,17 +11,8 @@ import type {
 } from '../domain/entities/incident'
 import type { TimelineEvent, TimelineEventType } from '../domain/entities/incident-timeline'
 import { NotFoundError, ValidationError } from '../domain/errors'
-import type {
-  IncidentImage,
-  IncidentImageRepository,
-} from '../domain/repositories/incident-image-repository'
 import type { IncidentRepository } from '../domain/repositories/incident-repository'
 import type { TimelineRepository } from '../domain/repositories/timeline-repository'
-import type {
-  AnalyzeIncidentInput,
-  IncidentAiAssistant,
-  IncidentAnalysisResult,
-} from '../domain/services/incident-ai-assistant'
 
 const MAX_IMAGE_BYTES = 1024 * 1024
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
@@ -42,8 +33,6 @@ export class IncidentService {
   constructor(
     private readonly incidentRepository: IncidentRepository,
     private readonly timelineRepository: TimelineRepository,
-    private readonly imageRepository: IncidentImageRepository,
-    private readonly aiAssistant: IncidentAiAssistant
   ) {}
 
   async listIncidents(filters?: IncidentFilters): Promise<Incident[]> {
@@ -56,25 +45,11 @@ export class IncidentService {
     return { incident, timeline }
   }
 
-  async analyzeIncident(input: AnalyzeIncidentInput): Promise<IncidentAnalysisResult> {
-    if (input.description.trim().length < 10)
-      throw new ValidationError('กรุณากรอกรายละเอียดเหตุการณ์อย่างน้อย 10 ตัวอักษร')
-    if (input.location.trim().length < 3)
-      throw new ValidationError('กรุณาระบุสถานที่อย่างน้อย 3 ตัวอักษร')
-    return this.aiAssistant.analyzeIncident({
-      ...input,
-      description: input.description.trim(),
-      location: input.location.trim(),
-      followUpAnswer: input.followUpAnswer?.trim() || undefined,
-    })
-  }
-
   async createIncident(input: CreateIncidentInput): Promise<IncidentDetail> {
     this.validateCreate(input)
     const now = new Date().toISOString()
     const id = crypto.randomUUID()
     const image = input.imageDataUrl ? this.decodeImage(input.imageDataUrl) : undefined
-    const imageKey = image ? `incident-images/${id}` : undefined
     const incident: Incident = {
       id,
       incidentCode: this.createIncidentCode(),
@@ -84,43 +59,22 @@ export class IncidentService {
       category: input.category,
       location: input.location.trim(),
       reporterName: input.reporterName?.trim() || undefined,
-      suggestedPriority: input.suggestedPriority,
       confirmedPriority: input.confirmedPriority,
       priorityReason: input.priorityReason.trim(),
       status: 'NEW',
-      followUpQuestion: input.followUpQuestion?.trim() || undefined,
-      followUpAnswer: input.followUpAnswer?.trim() || undefined,
-      imageKey,
+      imageData: image ? `data:${image.mimeType};base64,${image.base64}` : undefined,
       imageMimeType: image?.mimeType,
-      aiAnalysisSource: input.aiAnalysisSource,
       createdAt: now,
       updatedAt: now,
     }
 
-    if (imageKey && image) await this.imageRepository.save(imageKey, image)
-    try {
-      await this.incidentRepository.create(incident)
-    }
-    catch (error) {
-      if (imageKey) await this.imageRepository.delete(imageKey)
-      throw error
-    }
-
+    await this.incidentRepository.create(incident)
     await this.record(
       incident.id,
       'INCIDENT_CREATED',
       'Incident ถูกสร้าง',
       `สร้าง ${incident.incidentCode}: ${incident.title}`,
-      incident.reporterName ?? 'ผู้แจ้งเหตุ'
-    )
-    await this.record(
-      incident.id,
-      'AI_ANALYZED',
-      'AI วิเคราะห์ข้อมูลเสร็จแล้ว',
-      input.aiAnalysisSource === 'deepseek'
-        ? `เสนอ Priority เป็น ${input.suggestedPriority}`
-        : 'ใช้ระบบสำรองและรอผู้รับผิดชอบประเมิน Priority',
-      input.aiAnalysisSource === 'deepseek' ? 'School SOS AI' : 'ระบบ'
+      incident.reporterName ?? 'ผู้แจ้งเหตุ',
     )
     return this.getIncident(incident.id)
   }
@@ -128,8 +82,6 @@ export class IncidentService {
   async updateIncident(id: string, input: UpdateIncidentInput): Promise<IncidentDetail> {
     let incident = await this.findIncident(id)
     const actor = input.actorName?.trim() || 'เจ้าหน้าที่'
-    if (input.assigneeName === undefined && input.confirmedPriority === undefined)
-      throw new ValidationError('กรุณาระบุข้อมูลที่ต้องการอัปเดต')
 
     if (input.assigneeName !== undefined) {
       const assigneeName = input.assigneeName.trim()
@@ -158,7 +110,7 @@ export class IncidentService {
         'PRIORITY_UPDATED',
         'อัปเดต Priority',
         `เปลี่ยนจาก ${previous} เป็น ${input.confirmedPriority}`,
-        actor
+        actor,
       )
     }
     return this.getIncident(id)
@@ -166,7 +118,8 @@ export class IncidentService {
 
   async changeStatus(id: string, input: ChangeIncidentStatusInput): Promise<IncidentDetail> {
     const incident = await this.findIncident(id)
-    if (incident.status === input.status) throw new ValidationError('สถานะใหม่ต้องไม่ซ้ำกับสถานะปัจจุบัน')
+    if (incident.status === input.status)
+      throw new ValidationError('สถานะใหม่ต้องไม่ซ้ำกับสถานะปัจจุบัน')
     if (!transitions[incident.status].includes(input.status)) {
       throw new ValidationError(`ไม่สามารถเปลี่ยนสถานะจาก ${incident.status} ไป ${input.status} ได้`)
     }
@@ -184,7 +137,7 @@ export class IncidentService {
       'STATUS_CHANGED',
       'เปลี่ยนสถานะ',
       `เปลี่ยนจาก ${incident.status} เป็น ${input.status}${note ? ` — ${note}` : ''}`,
-      input.actorName?.trim() || 'เจ้าหน้าที่'
+      input.actorName?.trim() || 'เจ้าหน้าที่',
     )
     return this.getIncident(id)
   }
@@ -200,7 +153,7 @@ export class IncidentService {
       'PROGRESS_RECORDED',
       'บันทึกการดำเนินการ',
       description,
-      input.actorName?.trim() || incident.assigneeName || 'เจ้าหน้าที่'
+      input.actorName?.trim() || incident.assigneeName || 'เจ้าหน้าที่',
     )
     return this.getIncident(id)
   }
@@ -209,53 +162,38 @@ export class IncidentService {
     const incident = await this.findIncident(id)
     if (incident.status !== 'IN_PROGRESS')
       throw new ValidationError('ปิดเหตุได้เมื่อสถานะเป็น IN_PROGRESS เท่านั้น')
-    if (!incident.assigneeName) throw new ValidationError('กรุณาระบุผู้รับผิดชอบก่อนปิดเหตุ')
+    if (!incident.assigneeName)
+      throw new ValidationError('กรุณาระบุผู้รับผิดชอบก่อนปิดเหตุ')
     const actionTaken = input.actionTaken.trim()
     const resolutionResult = input.resolutionResult.trim()
     if (!actionTaken) throw new ValidationError('กรุณากรอกสิ่งที่ดำเนินการ')
     if (!resolutionResult) throw new ValidationError('กรุณากรอกผลลัพธ์')
 
-    const timeline = await this.timelineRepository.findByIncidentId(id)
-    const closure = await this.aiAssistant.generateClosureSummary({
-      incidentCode: incident.incidentCode,
-      title: incident.title,
-      summary: incident.summary,
-      location: incident.location,
-      confirmedPriority: incident.confirmedPriority,
-      assigneeName: incident.assigneeName,
-      actionTaken,
-      resolutionResult,
-      resolutionNote: input.resolutionNote?.trim() || undefined,
-      timeline,
-    })
     const resolvedAt = new Date().toISOString()
+    const closureSummary = `[${incident.incidentCode}] ${incident.title}
+
+สิ่งที่ดำเนินการ: ${actionTaken}
+ผลลัพธ์: ${resolutionResult}
+${input.resolutionNote ? `หมายเหตุ: ${input.resolutionNote.trim()}` : ''}`
+
     await this.incidentRepository.addResolution(id, {
       actionTaken,
       resolutionResult,
       resolutionNote: input.resolutionNote?.trim() || undefined,
-      closureSummary: closure.summary,
-      aiClosureSource: closure.source,
+      closureSummary,
       resolvedAt,
       updatedAt: resolvedAt,
     })
     const actor = input.actorName?.trim() || incident.assigneeName
     await this.record(id, 'INCIDENT_RESOLVED', 'ปิดเหตุเป็น RESOLVED', `ผลลัพธ์: ${resolutionResult}`, actor)
-    await this.record(
-      id,
-      'CLOSURE_SUMMARY_GENERATED',
-      'สร้างรายงานสรุปการปิดเหตุแล้ว',
-      closure.source === 'deepseek' ? 'สร้างด้วย School SOS AI' : 'สร้างด้วยระบบสำรอง',
-      closure.source === 'deepseek' ? 'School SOS AI' : 'ระบบ'
-    )
     return this.getIncident(id)
   }
 
-  async getIncidentImage(id: string): Promise<IncidentImage> {
+  async getIncidentImage(id: string): Promise<{ data: string; mimeType: string }> {
     const incident = await this.findIncident(id)
-    if (!incident.imageKey) throw new NotFoundError('Incident image')
-    const image = await this.imageRepository.find(incident.imageKey)
-    if (!image) throw new NotFoundError('Incident image')
-    return image
+    if (!incident.imageData || !incident.imageMimeType)
+      throw new NotFoundError('Incident image')
+    return { data: incident.imageData, mimeType: incident.imageMimeType }
   }
 
   private async findIncident(id: string): Promise<Incident> {
@@ -278,7 +216,7 @@ export class IncidentService {
     if (!input.priorityReason.trim()) throw new ValidationError('กรุณาระบุเหตุผลของ Priority')
   }
 
-  private decodeImage(dataUrl: string): IncidentImage {
+  private decodeImage(dataUrl: string): { data: Uint8Array; mimeType: string; base64: string } {
     const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(dataUrl)
     if (!match?.[1] || !match[2]) throw new ValidationError('ไม่รองรับประเภทไฟล์นี้')
     if (!ALLOWED_IMAGE_TYPES.has(match[1])) throw new ValidationError('ไม่รองรับประเภทไฟล์นี้')
@@ -295,7 +233,7 @@ export class IncidentService {
     if (!this.hasValidImageSignature(bytes, match[1]))
       throw new ValidationError('ข้อมูลรูปภาพไม่ตรงกับประเภทไฟล์')
 
-    return { data: bytes, mimeType: match[1] }
+    return { data: bytes, mimeType: match[1], base64: match[2].replace(/\s/g, '') }
   }
 
   private hasValidImageSignature(bytes: Uint8Array, mimeType: string): boolean {
@@ -324,7 +262,7 @@ export class IncidentService {
     eventType: TimelineEventType,
     title: string,
     description: string,
-    actorName: string
+    actorName: string,
   ): Promise<void> {
     await this.timelineRepository.create({
       incidentId,

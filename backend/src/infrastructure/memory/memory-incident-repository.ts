@@ -2,10 +2,9 @@ import type {
   Incident,
   IncidentFilters,
   IncidentPriority,
-  IncidentResolution,
   IncidentStatus,
 } from '../../domain/entities/incident'
-import type { IncidentRepository } from '../../domain/repositories/incident-repository'
+import type { IncidentRepository, IncidentResolution } from '../../domain/repositories/incident-repository'
 
 const priorityRank: Record<IncidentPriority, number> = {
   HIGH: 1,

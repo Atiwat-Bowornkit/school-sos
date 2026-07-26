@@ -9,7 +9,6 @@ import { TIMELINE_EVENT_TYPES } from '../domain/entities/incident-timeline'
 export const incidentStatusSchema = z.enum(INCIDENT_STATUSES)
 export const incidentPrioritySchema = z.enum(INCIDENT_PRIORITIES)
 export const incidentCategorySchema = z.enum(INCIDENT_CATEGORIES)
-export const aiSourceSchema = z.enum(['deepseek', 'fallback'])
 
 export const incidentSchema = z.object({
   id: z.uuid(),
@@ -20,20 +19,16 @@ export const incidentSchema = z.object({
   category: incidentCategorySchema,
   location: z.string(),
   reporterName: z.string().optional(),
-  suggestedPriority: incidentPrioritySchema,
   confirmedPriority: incidentPrioritySchema,
   priorityReason: z.string(),
   status: incidentStatusSchema,
   assigneeName: z.string().optional(),
-  followUpQuestion: z.string().optional(),
-  followUpAnswer: z.string().optional(),
-  imageUrl: z.string().optional(),
+  imageData: z.string().optional(),
+  imageMimeType: z.string().optional(),
   actionTaken: z.string().optional(),
   resolutionResult: z.string().optional(),
   resolutionNote: z.string().optional(),
   closureSummary: z.string().optional(),
-  aiAnalysisSource: aiSourceSchema,
-  aiClosureSource: aiSourceSchema.optional(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
   resolvedAt: z.iso.datetime().optional(),
@@ -61,13 +56,9 @@ export const createIncidentSchema = z.object({
   category: incidentCategorySchema,
   location: z.string().trim().min(3, 'กรุณาระบุสถานที่อย่างน้อย 3 ตัวอักษร'),
   reporterName: z.string().trim().optional(),
-  suggestedPriority: incidentPrioritySchema,
   confirmedPriority: incidentPrioritySchema,
   priorityReason: z.string().trim().min(1, 'กรุณาระบุเหตุผลของ Priority'),
-  followUpQuestion: z.string().trim().optional(),
-  followUpAnswer: z.string().trim().optional(),
   imageDataUrl: z.string().max(1_500_000, 'รูปภาพมีขนาดใหญ่เกินไป').optional(),
-  aiAnalysisSource: aiSourceSchema,
 })
 
 export const updateIncidentSchema = z.object({

@@ -15,8 +15,6 @@ export const INCIDENT_CATEGORIES = [
 ] as const
 export type IncidentCategory = (typeof INCIDENT_CATEGORIES)[number]
 
-export type AiSource = 'deepseek' | 'fallback'
-
 export interface Incident {
   id: string
   incidentCode: string
@@ -26,20 +24,15 @@ export interface Incident {
   category: IncidentCategory
   location: string
   reporterName?: string
-  suggestedPriority: IncidentPriority
   confirmedPriority: IncidentPriority
   priorityReason: string
   status: IncidentStatus
   assigneeName?: string
-  followUpQuestion?: string
-  followUpAnswer?: string
   imageUrl?: string
   actionTaken?: string
   resolutionResult?: string
   resolutionNote?: string
   closureSummary?: string
-  aiAnalysisSource: AiSource
-  aiClosureSource?: AiSource
   createdAt: string
   updatedAt: string
   resolvedAt?: string
@@ -47,13 +40,11 @@ export interface Incident {
 
 export type TimelineEventType =
   | 'INCIDENT_CREATED'
-  | 'AI_ANALYZED'
   | 'ASSIGNEE_UPDATED'
   | 'PRIORITY_UPDATED'
   | 'STATUS_CHANGED'
   | 'PROGRESS_RECORDED'
   | 'INCIDENT_RESOLVED'
-  | 'CLOSURE_SUMMARY_GENERATED'
 
 export interface TimelineEvent {
   id: string
@@ -77,13 +68,9 @@ export interface CreateIncidentBody {
   category: IncidentCategory
   location: string
   reporterName?: string
-  suggestedPriority: IncidentPriority
   confirmedPriority: IncidentPriority
   priorityReason: string
-  followUpQuestion?: string
-  followUpAnswer?: string
   imageDataUrl?: string
-  aiAnalysisSource: AiSource
 }
 
 export interface UpdateIncidentBody {
@@ -122,3 +109,18 @@ export interface IncidentListResponse {
 export interface IncidentDetailResponse {
   data: IncidentDetail
 }
+
+export interface IncidentAnalysisResult {
+  needsFollowUp: boolean
+  followUpQuestion: string | null
+  analysis: {
+    title: string
+    summary: string
+    suggestedCategory: IncidentCategory
+    suggestedPriority: IncidentPriority
+    priorityReason: string
+  } | null
+  source: 'deepseek' | 'fallback'
+}
+
+export type AiSource = 'deepseek' | 'fallback'

@@ -12,15 +12,11 @@ import { ValidationError } from '../domain/errors'
 import type { IncidentDetail, IncidentService } from '../services/incident-service'
 
 function toIncidentDto(incident: Incident) {
-  const { imageKey: _imageKey, imageMimeType: _imageMimeType, ...dto } = incident
+  const { imageData: _imageData, imageMimeType: _imageMimeType, ...dto } = incident
   return {
     ...dto,
-    imageUrl: imageKeyUrl(incident),
+    imageUrl: incident.imageData ? `/api/v1/incidents/${incident.id}/image` : undefined,
   }
-}
-
-function imageKeyUrl(incident: Incident): string | undefined {
-  return incident.imageKey ? `/api/v1/incidents/${incident.id}/image` : undefined
 }
 
 function toDetailDto(detail: IncidentDetail) {
@@ -79,12 +75,19 @@ export class IncidentHandler {
 
   image = async (c: Context) => {
     const image = await this.incidentService.getIncidentImage(this.param(c, 'id'))
-    return new Response(new Uint8Array(image.data), {
+    // image.data is a base64 data URL, extract the base64 part
+    const base64Match = /^data:([^;]+);base64,(.+)$/.exec(image.data)
+    if (!base64Match) return c.notFound()
+    const mimeType = base64Match[1] ?? ''
+    const b64 = base64Match[2] ?? ''
+    if (!mimeType || !b64) return c.notFound()
+    const binaryStr = atob(b64)
+    const bytes = Uint8Array.from(binaryStr, ch => ch.charCodeAt(0))
+    return new Response(bytes, {
       status: 200,
       headers: {
-        'Content-Type': image.mimeType,
+        'Content-Type': mimeType,
         'Cache-Control': 'public, max-age=3600',
-        'Content-Length': image.data.byteLength.toString(),
       },
     })
   }

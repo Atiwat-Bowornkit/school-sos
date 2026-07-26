@@ -1,4 +1,4 @@
--- Migration number: 0001
+-- Migration number: 0001 — School SOS schema (Scope v2, no AI)
 CREATE TABLE IF NOT EXISTS incidents (
     id TEXT PRIMARY KEY,
     incident_code TEXT NOT NULL UNIQUE,
@@ -8,21 +8,16 @@ CREATE TABLE IF NOT EXISTS incidents (
     category TEXT NOT NULL,
     location TEXT NOT NULL,
     reporter_name TEXT,
-    suggested_priority TEXT NOT NULL,
     confirmed_priority TEXT NOT NULL,
     priority_reason TEXT NOT NULL,
     status TEXT NOT NULL,
     assignee_name TEXT,
-    follow_up_question TEXT,
-    follow_up_answer TEXT,
-    image_key TEXT,
+    image_data TEXT,
     image_mime_type TEXT,
     action_taken TEXT,
     resolution_result TEXT,
     resolution_note TEXT,
     closure_summary TEXT,
-    ai_analysis_source TEXT NOT NULL DEFAULT 'fallback',
-    ai_closure_source TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     resolved_at TEXT

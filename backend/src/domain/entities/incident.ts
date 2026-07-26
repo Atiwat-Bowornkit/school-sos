@@ -1,3 +1,4 @@
+// Incident entity — AI-free version per Scope v2
 export const INCIDENT_STATUSES = ['NEW', 'ACKNOWLEDGED', 'IN_PROGRESS', 'RESOLVED'] as const
 export type IncidentStatus = (typeof INCIDENT_STATUSES)[number]
 
@@ -15,8 +16,6 @@ export const INCIDENT_CATEGORIES = [
 ] as const
 export type IncidentCategory = (typeof INCIDENT_CATEGORIES)[number]
 
-export type AiSource = 'deepseek' | 'fallback'
-
 export interface Incident {
   id: string
   incidentCode: string
@@ -26,21 +25,16 @@ export interface Incident {
   category: IncidentCategory
   location: string
   reporterName?: string
-  suggestedPriority: IncidentPriority
   confirmedPriority: IncidentPriority
   priorityReason: string
   status: IncidentStatus
   assigneeName?: string
-  followUpQuestion?: string
-  followUpAnswer?: string
-  imageKey?: string
+  imageData?: string // base64 encoded, stored in D1
   imageMimeType?: string
   actionTaken?: string
   resolutionResult?: string
   resolutionNote?: string
   closureSummary?: string
-  aiAnalysisSource: AiSource
-  aiClosureSource?: AiSource
   createdAt: string
   updatedAt: string
   resolvedAt?: string
@@ -58,13 +52,9 @@ export interface CreateIncidentInput {
   category: IncidentCategory
   location: string
   reporterName?: string
-  suggestedPriority: IncidentPriority
   confirmedPriority: IncidentPriority
   priorityReason: string
-  followUpQuestion?: string
-  followUpAnswer?: string
   imageDataUrl?: string
-  aiAnalysisSource: AiSource
 }
 
 export interface UpdateIncidentInput {
@@ -89,14 +79,4 @@ export interface ResolveIncidentInput {
   resolutionResult: string
   resolutionNote?: string
   actorName?: string
-}
-
-export interface IncidentResolution {
-  actionTaken: string
-  resolutionResult: string
-  resolutionNote?: string
-  closureSummary: string
-  aiClosureSource: AiSource
-  resolvedAt: string
-  updatedAt: string
 }

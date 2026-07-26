@@ -1,13 +1,11 @@
 import type {
-  AiSource,
   Incident,
   IncidentCategory,
   IncidentFilters,
   IncidentPriority,
-  IncidentResolution,
   IncidentStatus,
 } from '../../domain/entities/incident'
-import type { IncidentRepository } from '../../domain/repositories/incident-repository'
+import type { IncidentRepository, IncidentResolution } from '../../domain/repositories/incident-repository'
 
 interface IncidentRow {
   id: string
@@ -18,21 +16,16 @@ interface IncidentRow {
   category: IncidentCategory
   location: string
   reporter_name: string | null
-  suggested_priority: IncidentPriority
   confirmed_priority: IncidentPriority
   priority_reason: string
   status: IncidentStatus
   assignee_name: string | null
-  follow_up_question: string | null
-  follow_up_answer: string | null
-  image_key: string | null
+  image_data: string | null
   image_mime_type: string | null
   action_taken: string | null
   resolution_result: string | null
   resolution_note: string | null
   closure_summary: string | null
-  ai_analysis_source: AiSource
-  ai_closure_source: AiSource | null
   created_at: string
   updated_at: string
   resolved_at: string | null
@@ -40,10 +33,10 @@ interface IncidentRow {
 
 const SELECT_COLUMNS = `
   id, incident_code, raw_description, title, summary, category, location, reporter_name,
-  suggested_priority, confirmed_priority, priority_reason, status, assignee_name,
-  follow_up_question, follow_up_answer, image_key, image_mime_type, action_taken,
-  resolution_result, resolution_note, closure_summary, ai_analysis_source,
-  ai_closure_source, created_at, updated_at, resolved_at
+  confirmed_priority, priority_reason, status, assignee_name,
+  image_data, image_mime_type, action_taken,
+  resolution_result, resolution_note, closure_summary,
+  created_at, updated_at, resolved_at
 `
 
 function toIncident(row: IncidentRow): Incident {
@@ -56,21 +49,16 @@ function toIncident(row: IncidentRow): Incident {
     category: row.category,
     location: row.location,
     reporterName: row.reporter_name ?? undefined,
-    suggestedPriority: row.suggested_priority,
     confirmedPriority: row.confirmed_priority,
     priorityReason: row.priority_reason,
     status: row.status,
     assigneeName: row.assignee_name ?? undefined,
-    followUpQuestion: row.follow_up_question ?? undefined,
-    followUpAnswer: row.follow_up_answer ?? undefined,
-    imageKey: row.image_key ?? undefined,
+    imageData: row.image_data ?? undefined,
     imageMimeType: row.image_mime_type ?? undefined,
     actionTaken: row.action_taken ?? undefined,
     resolutionResult: row.resolution_result ?? undefined,
     resolutionNote: row.resolution_note ?? undefined,
     closureSummary: row.closure_summary ?? undefined,
-    aiAnalysisSource: row.ai_analysis_source,
-    aiClosureSource: row.ai_closure_source ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     resolvedAt: row.resolved_at ?? undefined,
@@ -118,11 +106,11 @@ export class D1IncidentRepository implements IncidentRepository {
     await this.db.prepare(`
       INSERT INTO incidents (
         id, incident_code, raw_description, title, summary, category, location, reporter_name,
-        suggested_priority, confirmed_priority, priority_reason, status, assignee_name,
-        follow_up_question, follow_up_answer, image_key, image_mime_type, action_taken,
-        resolution_result, resolution_note, closure_summary, ai_analysis_source,
-        ai_closure_source, created_at, updated_at, resolved_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        confirmed_priority, priority_reason, status, assignee_name,
+        image_data, image_mime_type, action_taken,
+        resolution_result, resolution_note, closure_summary,
+        created_at, updated_at, resolved_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       incident.id,
       incident.incidentCode,
@@ -132,21 +120,16 @@ export class D1IncidentRepository implements IncidentRepository {
       incident.category,
       incident.location,
       incident.reporterName ?? null,
-      incident.suggestedPriority,
       incident.confirmedPriority,
       incident.priorityReason,
       incident.status,
       incident.assigneeName ?? null,
-      incident.followUpQuestion ?? null,
-      incident.followUpAnswer ?? null,
-      incident.imageKey ?? null,
+      incident.imageData ?? null,
       incident.imageMimeType ?? null,
       incident.actionTaken ?? null,
       incident.resolutionResult ?? null,
       incident.resolutionNote ?? null,
       incident.closureSummary ?? null,
-      incident.aiAnalysisSource,
-      incident.aiClosureSource ?? null,
       incident.createdAt,
       incident.updatedAt,
       incident.resolvedAt ?? null
@@ -179,14 +162,13 @@ export class D1IncidentRepository implements IncidentRepository {
     await this.db.prepare(`
       UPDATE incidents
       SET action_taken = ?, resolution_result = ?, resolution_note = ?, closure_summary = ?,
-          ai_closure_source = ?, status = 'RESOLVED', resolved_at = ?, updated_at = ?
+          status = 'RESOLVED', resolved_at = ?, updated_at = ?
       WHERE id = ?
     `).bind(
       resolution.actionTaken,
       resolution.resolutionResult,
       resolution.resolutionNote ?? null,
       resolution.closureSummary,
-      resolution.aiClosureSource,
       resolution.resolvedAt,
       resolution.updatedAt,
       id
