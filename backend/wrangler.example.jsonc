@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "starter-backend",
+  "name": "school-sos-backend",
   "main": "src/server.ts",
   "compatibility_date": "2026-07-01",
   "observability": {
@@ -9,7 +9,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "starter-db",
+      "database_name": "school-sos-db",
       "database_id": "<REPLACE_WITH_D1_DATABASE_ID>",
       "migrations_dir": "migrations"
     }
@@ -21,6 +21,8 @@
     }
   ],
   "vars": {
-    "ENVIRONMENT": "production"
+    "ENVIRONMENT": "production",
+    "DEEPSEEK_BASE_URL": "https://api.deepseek.com",
+    "DEEPSEEK_MODEL": "deepseek-v4-flash"
   }
 }

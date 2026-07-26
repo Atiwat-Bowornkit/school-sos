@@ -1,128 +1,47 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- Preconnect to external domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- DNS Prefetch -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-
-    <!-- Primary Meta Tags (will be updated dynamically by useSEO composable) -->
-    <title>Fakduai - Web App Starter Template</title>
-    <meta name="title" content="Fakduai - Web App Starter Template" />
+    <title>School SOS</title>
+    <meta name="title" content="School SOS" />
     <meta
       name="description"
-      content="A modern, feature-rich Vue 3 + Vuetify admin template with TypeScript support. Build powerful web applications faster."
+      content="ระบบแจ้ง ประสานงาน และติดตามการแก้ไขปัญหาภายในโรงเรียน"
     />
-    <meta
-      name="keywords"
-      content="vue3, vuetify, admin template, dashboard, web app, typescript, fakduai"
-    />
-    <meta name="author" content="Fakduai" />
+    <meta name="keywords" content="School SOS, แจ้งเหตุ, โรงเรียน, ติดตามเหตุ" />
+    <meta name="author" content="School SOS Team" />
     <meta name="robots" content="index, follow" />
-    <meta name="language" content="English" />
-    <meta name="theme-color" content="#3b82f6" />
-
-    <!-- Canonical URL (will be updated dynamically) -->
-    <link rel="canonical" href="https://fakduai.com" />
-
-    <!-- Open Graph / Facebook / LinkedIn (will be updated dynamically) -->
+    <meta name="language" content="Thai" />
+    <meta name="theme-color" content="#1E40AF" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://fakduai.com" />
-    <meta property="og:title" content="Fakduai - Web App Starter Template" />
+    <meta property="og:title" content="School SOS" />
     <meta
       property="og:description"
-      content="A modern, feature-rich Vue 3 + Vuetify admin template with TypeScript support."
+      content="ระบบแจ้ง ประสานงาน และติดตามการแก้ไขปัญหาภายในโรงเรียน"
     />
-    <meta property="og:image" content="/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:site_name" content="Fakduai" />
-    <meta property="og:locale" content="en_US" />
-
-    <!-- Twitter (will be updated dynamically) -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://fakduai.com" />
-    <meta name="twitter:title" content="Fakduai - Web App Starter Template" />
+    <meta property="og:site_name" content="School SOS" />
+    <meta property="og:locale" content="th_TH" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="School SOS" />
     <meta
       name="twitter:description"
-      content="A modern, feature-rich Vue 3 + Vuetify admin template with TypeScript support."
+      content="ระบบแจ้ง ประสานงาน และติดตามการแก้ไขปัญหาภายในโรงเรียน"
     />
-    <meta name="twitter:image" content="/twitter-image.png" />
-    <meta name="twitter:site" content="@yourtwitter" />
-    <meta name="twitter:creator" content="@yourtwitter" />
-
-    <!-- Apple Mobile Web App -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="Fakduai" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
-
-    <!-- Microsoft -->
-    <meta name="msapplication-TileColor" content="#3b82f6" />
-    <meta name="msapplication-TileImage" content="/favicon.png" />
-
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="School SOS" />
+    <meta name="msapplication-TileColor" content="#1E40AF" />
     <link rel="stylesheet" type="text/css" href="/loader.css" />
   </head>
 
   <body>
     <div id="app">
       <div id="loading-bg">
-        <div class="loading-logo">
-          <!-- SVG Logo -->
-          <svg
-            width="98"
-            height="78"
-            viewBox="0 0 200 230"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M100 20 L186.6 70 L100 120 L13.4 70 Z" fill="#3b82f6" />
-
-            <path d="M13.4 70 L100 120 V220 L13.4 170 Z" fill="#1e40af" />
-
-            <path d="M100 120 L186.6 70 V170 L100 220 Z" fill="#2563eb" />
-
-            <g transform="translate(56, 155) skewY(30)">
-              <text
-                x="0"
-                y="0"
-                font-family="Arial, Helvetica, sans-serif"
-                font-weight="bold"
-                font-size="50"
-                fill="white"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                transform="scale(0.7, 1)"
-              >
-                FD
-              </text>
-            </g>
-
-            <g transform="translate(144, 155) skewY(-30)">
-              <text
-                x="0"
-                y="0"
-                font-family="Arial, Helvetica, sans-serif"
-                font-weight="bold"
-                font-size="50"
-                fill="white"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                transform="scale(0.7, 1)"
-              >
-                LP
-              </text>
-            </g>
-          </svg>
+        <div class="loading-logo" aria-label="School SOS">
+          <strong style="color: #1e40af; font: 700 28px/1 Arial, sans-serif">SOS</strong>
         </div>
         <div class="loading">
           <div class="effect-1 effects"></div>
@@ -134,26 +53,11 @@
     <script type="module" src="/src/main.ts"></script>
     <script>
       const loaderColor =
-        localStorage.getItem("fakduai-initial-loader-bg") || "#FFFFFF";
+        localStorage.getItem("school-sos-initial-loader-bg") || "#FFFFFF";
       const primaryColor =
-        localStorage.getItem("fakduai-initial-loader-color") || "#a169ff";
-
-      if (loaderColor)
-        document.documentElement.style.setProperty(
-          "--initial-loader-bg",
-          loaderColor,
-        );
-      if (loaderColor)
-        document.documentElement.style.setProperty(
-          "--initial-loader-bg",
-          loaderColor,
-        );
-
-      if (primaryColor)
-        document.documentElement.style.setProperty(
-          "--initial-loader-color",
-          primaryColor,
-        );
+        localStorage.getItem("school-sos-initial-loader-color") || "#1E40AF";
+      document.documentElement.style.setProperty("--initial-loader-bg", loaderColor);
+      document.documentElement.style.setProperty("--initial-loader-color", primaryColor);
     </script>
   </body>
 </html>

@@ -6,13 +6,15 @@ import navItems from '@/navigation/vertical'
 
 // Components
 import Footer from '@/layouts/components/Footer.vue'
-import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 
 // @layouts plugin
 
 // SECTION: Loading Indicator
 const isFallbackStateActive = ref(false)
-const refLoadingIndicator = ref<any>(null)
+const refLoadingIndicator = ref<{
+  fallbackHandle: () => void
+  resolveHandle: () => void
+} | null>(null)
 
 // watching if the fallback state is active and the refLoadingIndicator component is available
 watch([isFallbackStateActive, refLoadingIndicator], () => {
@@ -44,7 +46,6 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
           v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
           :languages="themeConfig.app.i18n.langConfig"
         />
-        <NavbarThemeSwitcher />
       </div>
     </template>
 

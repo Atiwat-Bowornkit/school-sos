@@ -16,6 +16,7 @@ declare global {
   const avatarText: typeof import('./src/@core/utils/formatters')['avatarText']
   const betweenValidator: typeof import('./src/@core/utils/validators')['betweenValidator']
   const calculateTimeSpan: typeof import('./src/utils/timespanUtil')['calculateTimeSpan']
+  const categoryLabels: typeof import('./src/utils/incident-labels')['categoryLabels']
   const computed: typeof import('vue')['computed']
   const computedAsync: typeof import('@vueuse/core')['computedAsync']
   const computedEager: typeof import('@vueuse/core')['computedEager']
@@ -52,8 +53,10 @@ declare global {
   const effectScope: typeof import('vue')['effectScope']
   const emailValidator: typeof import('./src/@core/utils/validators')['emailValidator']
   const extendRef: typeof import('@vueuse/core')['extendRef']
+  const filterIncidents: typeof import('./src/utils/incident-labels')['filterIncidents']
   const formatDate: typeof import('./src/@core/utils/formatters')['formatDate']
   const formatDateToMonthShort: typeof import('./src/@core/utils/formatters')['formatDateToMonthShort']
+  const formatThaiDateTime: typeof import('./src/utils/date-format')['formatThaiDateTime']
   const getActivePinia: typeof import('pinia')['getActivePinia']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
@@ -109,6 +112,8 @@ declare global {
   const passwordValidator: typeof import('./src/@core/utils/validators')['passwordValidator']
   const pausableWatch: typeof import('@vueuse/core')['pausableWatch']
   const prefixWithPlus: typeof import('./src/@core/utils/formatters')['prefixWithPlus']
+  const priorityColors: typeof import('./src/utils/incident-labels')['priorityColors']
+  const priorityLabels: typeof import('./src/utils/incident-labels')['priorityLabels']
   const provide: typeof import('vue')['provide']
   const provideLocal: typeof import('@vueuse/core')['provideLocal']
   const reactify: typeof import('@vueuse/core')['reactify']
@@ -127,6 +132,7 @@ declare global {
   const regexValidator: typeof import('./src/@core/utils/validators')['regexValidator']
   const registerPlugins: typeof import('./src/@core/utils/plugins')['registerPlugins']
   const requiredValidator: typeof import('./src/@core/utils/validators')['requiredValidator']
+  const resizeIncidentImage: typeof import('./src/utils/image-resize')['resizeIncidentImage']
   const resolveComponent: typeof import('vue')['resolveComponent']
   const resolveRef: typeof import('@vueuse/core')['resolveRef']
   const resolveUnref: typeof import('@vueuse/core')['resolveUnref']
@@ -137,6 +143,8 @@ declare global {
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
+  const statusColors: typeof import('./src/utils/incident-labels')['statusColors']
+  const statusLabels: typeof import('./src/utils/incident-labels')['statusLabels']
   const storeToRefs: typeof import('pinia')['storeToRefs']
   const syncRef: typeof import('@vueuse/core')['syncRef']
   const syncRefs: typeof import('@vueuse/core')['syncRefs']
@@ -342,6 +350,7 @@ declare global {
   const useWindowFocus: typeof import('@vueuse/core')['useWindowFocus']
   const useWindowScroll: typeof import('@vueuse/core')['useWindowScroll']
   const useWindowSize: typeof import('@vueuse/core')['useWindowSize']
+  const validateReportBase: typeof import('./src/utils/report-validation')['validateReportBase']
   const watch: typeof import('vue')['watch']
   const watchArray: typeof import('@vueuse/core')['watchArray']
   const watchAtMost: typeof import('@vueuse/core')['watchAtMost']
@@ -369,7 +378,6 @@ declare global {
 import { UnwrapRef } from 'vue'
 declare module 'vue' {
   interface ComponentCustomProperties {
-    readonly $api: UnwrapRef<typeof import('./src/utils/api')['$api']>
     readonly COOKIE_MAX_AGE_1_YEAR: UnwrapRef<typeof import('./src/utils/constants')['COOKIE_MAX_AGE_1_YEAR']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
@@ -380,6 +388,7 @@ declare module 'vue' {
     readonly avatarText: UnwrapRef<typeof import('./src/@core/utils/formatters')['avatarText']>
     readonly betweenValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['betweenValidator']>
     readonly calculateTimeSpan: UnwrapRef<typeof import('./src/utils/timespanUtil')['calculateTimeSpan']>
+    readonly categoryLabels: UnwrapRef<typeof import('./src/utils/incident-labels')['categoryLabels']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly computedAsync: UnwrapRef<typeof import('@vueuse/core')['computedAsync']>
     readonly computedEager: UnwrapRef<typeof import('@vueuse/core')['computedEager']>
@@ -415,8 +424,10 @@ declare module 'vue' {
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly emailValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['emailValidator']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
+    readonly filterIncidents: UnwrapRef<typeof import('./src/utils/incident-labels')['filterIncidents']>
     readonly formatDate: UnwrapRef<typeof import('./src/@core/utils/formatters')['formatDate']>
     readonly formatDateToMonthShort: UnwrapRef<typeof import('./src/@core/utils/formatters')['formatDateToMonthShort']>
+    readonly formatThaiDateTime: UnwrapRef<typeof import('./src/utils/date-format')['formatThaiDateTime']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
@@ -472,6 +483,8 @@ declare module 'vue' {
     readonly passwordValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['passwordValidator']>
     readonly pausableWatch: UnwrapRef<typeof import('@vueuse/core')['pausableWatch']>
     readonly prefixWithPlus: UnwrapRef<typeof import('./src/@core/utils/formatters')['prefixWithPlus']>
+    readonly priorityColors: UnwrapRef<typeof import('./src/utils/incident-labels')['priorityColors']>
+    readonly priorityLabels: UnwrapRef<typeof import('./src/utils/incident-labels')['priorityLabels']>
     readonly provide: UnwrapRef<typeof import('vue')['provide']>
     readonly provideLocal: UnwrapRef<typeof import('@vueuse/core')['provideLocal']>
     readonly reactify: UnwrapRef<typeof import('@vueuse/core')['reactify']>
@@ -490,16 +503,18 @@ declare module 'vue' {
     readonly regexValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['regexValidator']>
     readonly registerPlugins: UnwrapRef<typeof import('./src/@core/utils/plugins')['registerPlugins']>
     readonly requiredValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['requiredValidator']>
+    readonly resizeIncidentImage: UnwrapRef<typeof import('./src/utils/image-resize')['resizeIncidentImage']>
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
     readonly resolveRef: UnwrapRef<typeof import('@vueuse/core')['resolveRef']>
     readonly resolveUnref: UnwrapRef<typeof import('@vueuse/core')['resolveUnref']>
     readonly resolveVuetifyTheme: UnwrapRef<typeof import('./src/@core/utils/vuetify')['resolveVuetifyTheme']>
-    readonly responseHandler: UnwrapRef<typeof import('./src/utils/api-response-handler')['responseHandler']>
     readonly setActivePinia: UnwrapRef<typeof import('pinia')['setActivePinia']>
     readonly setMapStoreSuffix: UnwrapRef<typeof import('pinia')['setMapStoreSuffix']>
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
+    readonly statusColors: UnwrapRef<typeof import('./src/utils/incident-labels')['statusColors']>
+    readonly statusLabels: UnwrapRef<typeof import('./src/utils/incident-labels')['statusLabels']>
     readonly storeToRefs: UnwrapRef<typeof import('pinia')['storeToRefs']>
     readonly syncRef: UnwrapRef<typeof import('@vueuse/core')['syncRef']>
     readonly syncRefs: UnwrapRef<typeof import('@vueuse/core')['syncRefs']>
@@ -524,7 +539,6 @@ declare module 'vue' {
     readonly useAbs: UnwrapRef<typeof import('@vueuse/math')['useAbs']>
     readonly useActiveElement: UnwrapRef<typeof import('@vueuse/core')['useActiveElement']>
     readonly useAnimate: UnwrapRef<typeof import('@vueuse/core')['useAnimate']>
-    readonly useApi: UnwrapRef<typeof import('./src/composables/useApi')['useApi']>
     readonly useArrayDifference: UnwrapRef<typeof import('@vueuse/core')['useArrayDifference']>
     readonly useArrayEvery: UnwrapRef<typeof import('@vueuse/core')['useArrayEvery']>
     readonly useArrayFilter: UnwrapRef<typeof import('@vueuse/core')['useArrayFilter']>
@@ -703,6 +717,7 @@ declare module 'vue' {
     readonly useWindowFocus: UnwrapRef<typeof import('@vueuse/core')['useWindowFocus']>
     readonly useWindowScroll: UnwrapRef<typeof import('@vueuse/core')['useWindowScroll']>
     readonly useWindowSize: UnwrapRef<typeof import('@vueuse/core')['useWindowSize']>
+    readonly validateReportBase: UnwrapRef<typeof import('./src/utils/report-validation')['validateReportBase']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>
     readonly watchArray: UnwrapRef<typeof import('@vueuse/core')['watchArray']>
     readonly watchAtMost: UnwrapRef<typeof import('@vueuse/core')['watchAtMost']>

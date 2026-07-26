@@ -5,6 +5,9 @@ export interface Bindings {
   DB: D1Database
   KV: KVNamespace
   ENVIRONMENT?: string
+  DEEPSEEK_API_KEY?: string
+  DEEPSEEK_BASE_URL?: string
+  DEEPSEEK_MODEL?: string
 }
 
 export interface Variables {

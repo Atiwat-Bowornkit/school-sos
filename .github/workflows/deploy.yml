@@ -100,7 +100,7 @@ jobs:
           sed -i "s/<REPLACE_WITH_KV_NAMESPACE_ID>/${{ secrets.KV_NAMESPACE_ID }}/g" wrangler.jsonc
 
       - name: Apply D1 migrations
-        run: ./node_modules/.bin/wrangler d1 migrations apply starter-db --remote
+        run: ./node_modules/.bin/wrangler d1 migrations apply school-sos-db --remote
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

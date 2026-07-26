@@ -1,117 +1,61 @@
-# Fakduai - Premium Web App Starter Template
+# School SOS Frontend
 
-<details>
-  <summary>Click to View Logs</summary>
-  
-  - 21 Dec 2024
-    - Init Readme
-</details>
+Vue 3 + TypeScript + Vuetify + Pinia SPA สำหรับ Golden Flow ของ School SOS
 
-<hr>
+## Routes
 
-## Table of Contents
+- `/` Dashboard: summary, filter, desktop table, mobile cards
+- `/report` แบบฟอร์ม 3 ขั้นและ AI fallback
+- `/incidents/:id` รายละเอียด มอบหมาย Priority สถานะ progress resolve และ Timeline
 
-- [Fakduai Standard Web](#fakduai-standard-web)
-  - [Table of Contents](#table-of-contents)
-  - [Overview](#overview)
-    - [Project setup](#project-setup)
-    - [Compiles and hot-reloads for development](#compiles-and-hot-reloads-for-development)
-    - [Compiles and minifies for production](#compiles-and-minifies-for-production)
-    - [Lints and fixes files](#lints-and-fixes-files)
-  - [Folder Structure](#folder-structure)
-    - [Document](#document)
-  - [Conventions](#conventions)
-    - [Naming](#naming)
-    - [Component](#component)
+ไม่มี Login, User Profile, User Management หรือ localStorage persistence ของ Incident
 
-## Overview
+## Data flow
 
-A web frontend for Fakduai Standard Web project
-
-- **Recommended Editor: VS code**
-- Main Framework: Vue3 (Typescript)
-- UI Libs: Vuetify
-- Build Tools: Vite
-- Theme : Fakduai (Modern & Premium)
-- Test Tools: Vitest
-
-**Recommended VS Code Extensions**
-
-- Prettier
-- Vue Language Features (Volar)
-
-
-Use the right node version with `nvm`
-
-```bash
-nvm use
+```text
+Page → Pinia Store → typed API wrapper → School SOS Backend
 ```
 
-### Project setup
+- `useIncidentStore`: list/detail/timeline/loading/error/mutations
+- `useReportStore`: form/AI/follow-up/step/image/reset
+- D1 เป็นแหล่งข้อมูลหลัก; store เก็บเฉพาะ UI และ form state
 
-```
-npm install
-```
+## Local
 
-### Compiles and hot-reloads for development
-
-```
-npm run dev
-```
-
-### Compiles and minifies for production
-
-```
-npm run build
-```
-### Lints and fixes files
-
-```
-npm run lint
+```powershell
+pnpm install
+Copy-Item .env.example .env
+pnpm dev
 ```
 
+Environment:
 
-## Folder Structure
-### Folder Structure
-
-```bash
-├── .vscode
-├── public
-└──  src
-   ├── assets
-   ├── components
-   │   └── global
-   ├── layouts
-   ├── plugins
-   ├── services
-   ├── pages
-   └── utils|
-   └── views
-
+```text
+VITE_BACKEND_URL=http://localhost:8787
 ```
 
+ห้ามใช้ `VITE_API_BASE_URL` หรือใส่ DeepSeek key ใน Frontend
 
-## Conventions
+## Commands
 
-This section will guide you about convention that are being used in this project
-
-### Naming
-
-We use `kebab-case` naming style for almost everything.  
-Except for a `Vue component` and `JS, TS Class file`
-
-- **Folder**: `helloWorld`
-- **JS File**: `helloWorld.js`
-- **TS File**: `hello-world.ts`
-
-### Component
-- Use `Single File Component (SFC)` concept
-- Always use `<script setup>.....</script>` instead of `defineComponent`
-- All components should scope its style `<style scoped>`
-- `<script setup>...</script>` should be top level of the component (template below)
-
+```powershell
+pnpm test
+pnpm typecheck
+pnpm lint
+pnpm build
+pnpm preview
 ```
-  <script setup>...</script>
-  <template>...</template>
-  <style>...</style>
-```
+
+ใช้ pnpm 8.6.2 เท่านั้น `pnpm lint` มี `--fix`; ตรวจ diff หลังรัน
+
+## Image processing
+
+Browser Canvas ย่อภาพด้านยาวไม่เกิน 1,200 px และ encode WebP แบบลดคุณภาพซ้ำจน decoded payload ไม่เกิน 1 MB หากทำไม่ได้จะแสดง field error และไม่ส่ง
+
+## Accessibility/responsive
+
+UI มี label/error/alt text, ARIA สำหรับ action, focus state, badge มีข้อความ และเปลี่ยน table เป็น cards บนจอเล็ก ออกแบบสำหรับ desktop, tablet และ mobile โดยไม่ต้อง scroll แนวนอน
+
+## Production note
+
+เป็น demo แบบ public URL ทุกคนสามารถแก้ Incident ได้ ต้องเพิ่ม Authentication/RBAC ก่อนใช้กับข้อมูลสำคัญ

@@ -3,9 +3,6 @@ import { Skins } from '@core/enums'
 import { breakpointsVuetify } from '@vueuse/core'
 import { VIcon } from 'vuetify/components/VIcon'
 
-// ❗ Logo SVG must be imported with ?raw suffix
-import logo from '@images/logo.svg?raw'
-
 import {
   AppContentLayoutNav,
   ContentWidth,
@@ -15,12 +12,12 @@ import {
 
 export const { themeConfig, layoutConfig } = defineThemeConfig({
   app: {
-    title: 'fakduai',
-
-    // ❗ if you have SVG logo and want it to adapt according to theme color, you have to apply color as `color: rgb(var(--v-global-theme-primary))`
-    logo: h('div', {
-      innerHTML: logo,
-      style: 'line-height:0; color: rgb(var(--v-global-theme-primary))',
+    title: 'School SOS' as Lowercase<string>,
+    logo: h(VIcon, {
+      'icon': 'ri-alarm-warning-fill',
+      'color': 'primary',
+      'size': 36,
+      'aria-label': 'School SOS',
     }),
     contentWidth: ContentWidth.Boxed,
     contentLayoutNav: AppContentLayoutNav.Vertical,
@@ -46,7 +43,7 @@ export const { themeConfig, layoutConfig } = defineThemeConfig({
         },
       ],
     },
-    theme: 'system',
+    theme: 'light',
     skin: Skins.Default,
     iconRenderer: VIcon,
   },

@@ -1,18 +1,15 @@
 export default [
   {
-    heading: 'Main',
+    heading: 'School SOS',
   },
   {
-    title: 'Dashboard',
+    title: 'ภาพรวมเหตุการณ์',
     to: { name: 'root' },
-    icon: { icon: 'ri-home-line' },
+    icon: { icon: 'ri-dashboard-line' },
   },
   {
-    heading: 'Admin',
-  },
-  {
-    title: 'Users',
-    to: { name: 'user-page' },
-    icon: { icon: 'ri-user-3-line' },
+    title: 'แจ้งเหตุใหม่',
+    to: { name: 'report' },
+    icon: { icon: 'ri-alarm-warning-line' },
   },
 ]

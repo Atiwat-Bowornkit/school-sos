@@ -1,382 +1,239 @@
-# Starter Template — Full-Stack
+# School SOS
 
-Template สำหรับนักศึกษาที่อยากเรียนรู้การพัฒนา Full-Stack Web Application ตั้งแต่ต้น
-ใช้เป็นฐานในการต่อยอดโปรเจกต์ได้เลย มี Users Management เป็นตัวอย่าง Resource พร้อม Clean Architecture ครบชุด
+## 1. Product Overview
 
-**Tech Stack**
+School SOS คือ Web Application สำหรับแจ้ง ประสานงาน และติดตามการแก้ไขปัญหาภายในโรงเรียน ตั้งแต่ผู้พบเหตุแจ้งข้อมูลจนผู้รับผิดชอบปิดเหตุได้สำเร็จ ตัว MVP เป็นระบบ Full-Stack จริง ใช้ Backend API และ Cloudflare D1/KV ไม่ใช้ Local Storage เป็นฐานข้อมูล
 
-| | |
-|---|---|
-| **Backend** | [Hono](https://hono.dev/) + [Cloudflare Workers](https://workers.cloudflare.com/) + D1 (SQLite) + KV (Cache) |
-| **Frontend** | [Vue 3](https://vuejs.org/) + [Vuetify](https://vuetifyjs.com/) + [Pinia](https://pinia.vuejs.org/) |
-| **Deploy** | Cloudflare Workers (backend) + Cloudflare Pages (frontend) |
-| **CI/CD** | GitHub Actions — typecheck → build → deploy อัตโนมัติ |
+## 2. Problem Statement
 
----
+ระบบช่วยลดปัญหาข้อมูลเหตุที่กระจัดกระจาย ไม่ครบ และติดตามสถานะไม่ได้ โดยรวมรายละเอียด ผู้รับผิดชอบ Priority ความคืบหน้า ผลการแก้ไข และ Timeline ไว้ใน Incident เดียว
 
-## โครงสร้างโปรเจกต์
+## 3. Golden Flow
 
+```text
+แจ้งเหตุ + แนบภาพ → AI ตรวจข้อมูล/ถามเพิ่มได้ 1 ครั้ง → ผู้ใช้ยืนยัน
+→ สร้าง Incident → มอบหมาย → ACKNOWLEDGED → IN_PROGRESS
+→ บันทึกความคืบหน้า → RESOLVED → Closure Summary → Timeline
 ```
+
+DeepSeek เป็นผู้เสนอแนะเท่านั้น ผู้ใช้แก้ Title, Summary, Category และ Confirmed Priority ได้ก่อนสร้าง Incident
+
+## 4. Scope
+
+มี 3 หน้าหลัก:
+
+- `/` Dashboard
+- `/report` แจ้งเหตุใหม่
+- `/incidents/:id` รายละเอียดเหตุและการดำเนินงาน
+
+MVP ไม่มี Login, Authentication, RBAC, User Management, Notification ภายนอก, Real-time, Map, Image AI, Analytics ขั้นสูง หรือข้อมูลนักเรียน
+
+## 5. Tech Stack
+
+| ส่วน | เทคโนโลยี |
+| --- | --- |
+| Backend | TypeScript, Hono, Cloudflare Workers, D1, KV, Zod, OpenAPI |
+| Architecture | Clean Architecture และ Dependency Injection |
+| Frontend | Vue 3, TypeScript, Vuetify, Pinia, Vite |
+| AI | DeepSeek ผ่าน Backend พร้อม Template Fallback |
+| Deploy | Cloudflare Workers + Cloudflare Pages + GitHub Actions |
+| Test | Vitest |
+
+## 6. Project Structure
+
+```text
 starter-template/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml       # CI/CD pipeline รวม backend + frontend
-├── backend/                 # Hono API (Cloudflare Workers)
-└── frontend/                # Vue 3 + Vuetify SPA
+├── backend/
+│   ├── migrations/                 # D1 schema
+│   └── src/
+│       ├── domain/                 # entities/repository contracts/errors
+│       ├── services/               # business rules
+│       ├── infrastructure/         # D1, KV, Memory, DeepSeek/Fallback
+│       ├── handlers/               # HTTP orchestration
+│       ├── schemas/                # Zod + OpenAPI schemas
+│       ├── routers/                # public routes
+│       └── di/                     # dependency wiring
+├── frontend/src/
+│   ├── pages/                      # 3 product routes
+│   ├── stores/                     # UI/form state
+│   ├── apis/                       # typed Backend calls
+│   ├── models/                     # public API models
+│   └── components/school-sos/      # incident UI
+├── docs/
+└── .github/workflows/deploy.yml
 ```
 
----
+Data flow:
 
-## เริ่มใช้ Template นี้
-
-มีสองวิธี:
-
-**1. ดาวน์โหลด ZIP** (แนะนำ — ไม่ต้องลบ `.git`)
-
-ไปที่ GitHub → กด **Code → Download ZIP** → แตกไฟล์แล้วใช้งานได้เลย ไม่มี `.git` ติดมาด้วย
-
-**2. git clone**
-
-```bash
-git clone <repo-url> my-project
-cd my-project
-
-# ลบ .git ของ template ออก แล้วเริ่ม git ใหม่เป็นของตัวเอง
-rm -rf .git
-git init
-git add .
-git commit -m "initial commit"
+```text
+Page → Pinia Store → API wrapper → Hono Router → Handler → Service → Repository → D1/KV
 ```
 
-> ถ้า clone แล้วไม่ลบ `.git` จะ push ขึ้น repo ตัวเองไม่ได้ เพราะ remote ยังชี้ไปที่ repo ต้นฉบับอยู่
+## 7. Local Setup
 
----
+ต้องมี Node.js 22+ (ตรวจ local ด้วย Node.js 24 ได้), npm และ pnpm 8.6.2
 
-## สิ่งที่ต้องมีก่อนเริ่ม
+```powershell
+npm install --global pnpm@8.6.2
+```
 
-| เครื่องมือ | เวอร์ชัน |
-|---|---|
-| [Node.js](https://nodejs.org) | 22+ |
-| [pnpm](https://pnpm.io) | `npm i -g pnpm@8.6.2` |
-| [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) | `npm i -g wrangler` |
-| [Cloudflare Account](https://dash.cloudflare.com/sign-up) | ฟรี |
+เปิด Backend และ Frontend คนละ terminal ตามหัวข้อถัดไป
 
----
+## 8. Backend Setup
 
-## เริ่มต้น Local Development
-
-### Backend
-
-```bash
+```powershell
 cd backend
 npm install
-
-# login Cloudflare
-npx wrangler login
-
-# สร้าง D1 database ใน local
+Copy-Item wrangler.example.jsonc wrangler.jsonc
+# สำหรับ local เท่านั้น สามารถใช้ placeholder IDs ตามตัวอย่างได้
 npm run db:migrate:local
-
-# รัน dev server → http://localhost:8787
-# API Docs → http://localhost:8787/docs
 npm run dev
 ```
 
-### Frontend
+Backend: `http://localhost:8787`
 
-```bash
+API docs: `http://localhost:8787/docs`
+
+คำสั่งตรวจ:
+
+```powershell
+npm test
+npm run typecheck
+npm run build:lambda
+```
+
+## 9. Frontend Setup
+
+```powershell
 cd frontend
 pnpm install
-
-# ตั้งค่า environment
-cp .env.example .env
-# แก้ VITE_BACKEND_URL=http://localhost:8787
-
-# รัน dev server → http://localhost:5173
+Copy-Item .env.example .env
 pnpm dev
 ```
 
----
+Frontend: `http://localhost:5173`
 
-## GitHub Actions — ตั้งค่า CI/CD
+คำสั่งตรวจ:
 
-Workflow จะ trigger อัตโนมัติเมื่อ push ไป `main` และรันตามลำดับนี้:
-
-```
-push to main
-    ├── build-backend ──────────────────────────┐
-    │                                           ↓
-    └── build-frontend ──→ deploy-backend ──→ deploy-frontend
-```
-
-ต้องตั้งค่า **GitHub Secrets 6 ตัว** ก่อน workflow ถึงจะทำงานได้
-
-**GitHub repo → Settings → Secrets and variables → Actions → New repository secret**
-
----
-
-### Secret 1 — `CLOUDFLARE_API_TOKEN`
-
-1. ไปที่ [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens)
-2. กด **Create Token** → เลือก **Create Custom Token**
-3. ตั้งชื่อ เช่น `starter-deploy`
-4. เพิ่ม Permissions ดังนี้:
-
-   | Scope | Resource | Permission |
-   |---|---|---|
-   | Account | Cloudflare Pages | Edit |
-   | Account | Workers Scripts | Edit |
-   | Account | Workers KV Storage | Edit |
-   | Account | D1 | Edit |
-
-5. Account Resources → **Include → All accounts**
-6. กด **Continue to summary** → **Create Token**
-7. **คัดลอก token ทันที** — แสดงครั้งเดียวเท่านั้น
-
----
-
-### Secret 2 — `CLOUDFLARE_ACCOUNT_ID`
-
-1. ไปที่ [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages**
-2. มองขวาบน จะเห็น **Account ID** (32 ตัวอักษร)
-3. คัดลอกมาใส่
-
----
-
-### Secret 3 — `D1_DATABASE_ID`
-
-```bash
-npx wrangler d1 create starter-db
-```
-
-Output:
-```
-database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  ← คัดลอกอันนี้
-```
-
-> Workflow จะ inject ค่านี้เข้า `wrangler.jsonc` อัตโนมัติก่อน deploy
-
----
-
-### Secret 4 — `KV_NAMESPACE_ID`
-
-```bash
-npx wrangler kv namespace create CACHE
-```
-
-Output:
-```
-id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  ← คัดลอกอันนี้
-```
-
-> Workflow จะ inject ค่านี้เข้า `wrangler.jsonc` อัตโนมัติก่อน deploy
-
----
-
-### Secret 5 — `PAGES_PROJECT_NAME`
-
-ชื่อ Cloudflare Pages project ของคุณ — ตั้งชื่อที่ unique เป็นของตัวเอง
-
-- ตัวอย่าง: `john-wellness-app`, `my-health-tracker`
-- URL ที่ได้: `https://<PAGES_PROJECT_NAME>.pages.dev`
-
-> ชื่อต้อง **unique ทั่วโลก** เพราะ `pages.dev` เป็น domain ที่ใช้ร่วมกัน ถ้าซ้ำจะ deploy ไม่ได้
-
----
-
-### Secret 6 — `VITE_BACKEND_URL`
-
-URL ของ backend Workers ที่ deploy แล้ว รู้ได้หลัง deploy-backend สำเร็จครั้งแรก
-
-1. Push code ขึ้น `main` และรอให้ `deploy-backend` job ผ่าน
-2. ดู log ของ workflow จะเห็น:
-   ```
-   ✅ Backend deployed to https://starter-backend.yourname.workers.dev
-   ```
-3. คัดลอก URL นั้น → เพิ่มเป็น Secret `VITE_BACKEND_URL`
-4. Push อีกครั้งเพื่อให้ frontend build ด้วย URL ที่ถูกต้อง
-
----
-
-### สรุป Secrets
-
-| Secret | ใช้ใน | ค่าที่ต้องใส่ |
-|---|---|---|
-| `CLOUDFLARE_API_TOKEN` | backend + frontend | API Token จาก Cloudflare |
-| `CLOUDFLARE_ACCOUNT_ID` | backend + frontend | Account ID จาก Dashboard |
-| `D1_DATABASE_ID` | backend | database_id จาก `wrangler d1 create` |
-| `KV_NAMESPACE_ID` | backend | id จาก `wrangler kv namespace create` |
-| `PAGES_PROJECT_NAME` | frontend | ชื่อ Pages project ที่ตั้งเอง |
-| `VITE_BACKEND_URL` | frontend | URL ของ backend Workers หลัง deploy |
-
----
-
-## Deploy ด้วยมือ (ไม่ผ่าน GitHub Actions)
-
-### Backend
-
-```bash
-cd backend
-
-# ครั้งแรก: copy config และใส่ ID จริง
-cp wrangler.example.jsonc wrangler.jsonc
-# แก้ database_id และ kv id ใน wrangler.jsonc
-
-# apply migrations ขึ้น remote
-npm run db:migrate:remote
-
-# deploy
-npm run deploy
-```
-
-### Frontend
-
-```bash
-cd frontend
-
+```powershell
+pnpm test
+pnpm typecheck
+pnpm lint
 pnpm build
-
-npx wrangler pages deploy dist \
-  --project-name=<PAGES_PROJECT_NAME> \
-  --branch=main
 ```
 
----
+`pnpm lint` ใช้ `--fix`; ตรวจ diff ทุกครั้งหลังรัน
 
-## โครงสร้าง Backend
+## 10. Environment Variables
 
-```
-backend/
-├── migrations/              # SQL migration files (เรียงตามเลข)
-└── src/
-    ├── domain/              # ชั้นในสุด — ไม่รู้จัก Hono, D1, หรือ framework ใดๆ
-    │   ├── entities/        # TypeScript interfaces (User, HealthLog, Goal)
-    │   ├── repositories/    # Repository interfaces
-    │   └── errors.ts        # AppError, NotFoundError, ConflictError, ValidationError
-    │
-    ├── infrastructure/      # Implement repository จริง
-    │   ├── d1/              # Cloudflare D1 (SQLite)
-    │   ├── kv/              # Cloudflare KV (cache)
-    │   └── memory/          # In-memory (สำหรับ Lambda / test)
-    │
-    ├── services/            # Business logic — รับ repository interface, throw domain errors
-    ├── handlers/            # HTTP layer — รับ request, เรียก service, return JSON
-    ├── schemas/             # Zod schemas — validate request + generate OpenAPI docs
-    ├── routers/             # Route definitions + OpenAPI metadata
-    │   └── index.ts         # mount ทุก router ที่ /api/v1
-    ├── di/
-    │   └── container.ts     # Dependency Injection — wire ทุกอย่างเข้าด้วยกัน
-    ├── app.ts               # Hono app factory (runtime-agnostic)
-    ├── server.ts            # Cloudflare Workers entrypoint
-    └── lambda.ts            # AWS Lambda entrypoint
-```
+Frontend:
 
-### Architecture
+- `VITE_APP_TITLE`
+- `VITE_APP_URL`
+- `VITE_APP_DESCRIPTION`
+- `VITE_SITE_NAME`
+- `VITE_AUTHOR`
+- `VITE_THEME_COLOR`
+- `VITE_BACKEND_URL`
 
-```
-Request → Router (validate) → Handler (parse) → Service (logic) → Repository ← Implementation
-                                                                   (interface)     (D1/KV/Memory)
+Backend:
+
+- `ENVIRONMENT`
+- `DEEPSEEK_API_KEY` (secret)
+- `DEEPSEEK_BASE_URL`
+- `DEEPSEEK_MODEL`
+
+ห้ามวาง `DEEPSEEK_API_KEY` ใน Frontend, `.env.example`, Git หรือ build artifact
+
+## 11. D1 Migration
+
+Migration เริ่มที่ `backend/migrations/0001_create_school_sos.sql` และสร้าง `incidents`, `incident_timeline` พร้อม indexes
+
+```powershell
+cd backend
+npm run db:migrate:local
+# หลังตั้ง Cloudflare resource จริงแล้ว:
+npm run db:migrate:remote
 ```
 
-กฎ: **ชั้นในไม่รู้จักชั้นนอก** — `domain` ไม่ import `hono`, `service` ไม่รู้จัก `D1Database`
+D1 database name คือ `school-sos-db`
 
-### API Endpoints
+## 12. KV Image Storage
 
-| Method | Path | คำอธิบาย |
-|---|---|---|
-| GET | `/health` | Health check |
-| GET | `/docs` | Scalar API Docs UI |
-| GET | `/openapi.json` | OpenAPI spec |
-| GET | `/api/v1/users` | รายการ users |
-| POST | `/api/v1/users` | สร้าง user |
-| GET | `/api/v1/users/:id` | ดู user (cached 5 นาที) |
-| PATCH | `/api/v1/users/:id` | แก้ไข user |
-| DELETE | `/api/v1/users/:id` | ลบ user |
+รองรับ JPEG, PNG หรือ WebP หนึ่งภาพ ขนาด decoded ไม่เกิน 1 MB Frontend ย่อด้านยาวไม่เกิน 1,200 px และลดคุณภาพแบบวนซ้ำก่อนส่ง Backend ตรวจ MIME/ขนาดซ้ำ แล้วเก็บ bytes ใน KV ด้วย key อิง Incident ID
 
-### เพิ่ม Resource ใหม่ (เช่น `bookings`)
+ภาพอ่านผ่าน `GET /api/v1/incidents/:id/image` และส่ง Content-Type จริง หาก D1 สร้าง Incident ไม่สำเร็จหลังบันทึก KV ระบบลบภาพค้าง
 
-ดู `user` files เป็น template แล้วทำตามลำดับ:
+## 13. DeepSeek Configuration
 
-1. `src/domain/entities/booking.ts`
-2. `src/domain/repositories/booking-repository.ts`
-3. `src/infrastructure/d1/d1-booking-repository.ts` + `src/infrastructure/memory/memory-booking-repository.ts`
-4. `src/services/booking-service.ts`
-5. `src/handlers/booking-handler.ts`
-6. `src/schemas/booking-schemas.ts` + `src/routers/booking-router.ts`
-7. `migrations/0002_create_bookings.sql`
-8. เพิ่มใน `src/di/container.ts`, `src/routers/index.ts`, `src/server.ts`, `src/lambda.ts`
-9. `npm run db:migrate:local`
+Backend ใช้ `deepseek-v4-flash`, JSON output, thinking disabled, timeout 12 วินาที และตรวจผลด้วย Zod:
 
----
-
-## โครงสร้าง Frontend
-
-```
-frontend/src/
-├── pages/             # File-based routing (vite-plugin-vue-router)
-│   ├── index.vue      # / → Dashboard
-│   ├── user-page.vue
-│   ├── login.vue
-│   └── [...error].vue
-├── apis/              # Fetch wrapper functions
-├── stores/            # Pinia state management
-├── models/            # TypeScript interfaces
-├── components/        # Reusable Vue components
-├── composables/       # Vue composables
-├── layouts/           # Layout templates (default, blank)
-└── navigation/
-    └── vertical/
-        └── index.ts   # เมนู sidebar
+```powershell
+cd backend
+npx wrangler secret put DEEPSEEK_API_KEY
 ```
 
-### Data Flow
+ตั้ง `DEEPSEEK_BASE_URL` และ `DEEPSEEK_MODEL` ใน Wrangler vars ได้ โดยไม่ commit secret
 
-```
-Page (Vue SFC) → Store (Pinia) → API function (fetch) → Backend /api/v1/...
-```
+## 14. AI Fallback
 
-### เพิ่มหน้าใหม่ (เช่น `bookings`)
+เมื่อไม่มี key, timeout, HTTP error, response ว่าง, JSON ผิด หรือ schema ไม่ผ่าน ระบบคืน `source: fallback` และ Priority เริ่มเป็น `UNASSIGNED` ผู้ใช้ยังแก้ข้อมูลและสร้าง Incident ได้ การ Resolve ก็สำเร็จพร้อม Template Closure Summary แม้ AI ล้มเหลว
 
-ดู `user` files เป็น template แล้วทำตามลำดับ:
+AI follow-up จำกัดหนึ่งรอบทั้ง prompt และ adapter
 
-1. `src/models/booking.ts` — TypeScript interfaces
-2. `src/apis/booking-api.ts` — fetch functions
-3. `src/stores/use-booking-store.ts` — Pinia store
-4. `src/pages/booking-page.vue` — route สร้างอัตโนมัติจากชื่อไฟล์
-5. เพิ่มเมนูใน `src/navigation/vertical/index.ts`
+## 15. API Endpoints
 
----
+| Method | Path |
+| --- | --- |
+| GET | `/health` |
+| GET | `/docs` |
+| GET | `/openapi.json` |
+| GET | `/api/v1/incidents?status=&priority=` |
+| POST | `/api/v1/incidents` |
+| GET | `/api/v1/incidents/:id` |
+| PATCH | `/api/v1/incidents/:id` |
+| POST | `/api/v1/incidents/:id/status` |
+| POST | `/api/v1/incidents/:id/progress` |
+| POST | `/api/v1/incidents/:id/resolve` |
+| GET | `/api/v1/incidents/:id/image` |
+| POST | `/api/v1/ai/incidents/analyze` |
 
-## คำสั่งที่ใช้บ่อย
+JSON สำเร็จใช้ `{ "data": ... }`; ข้อผิดพลาดใช้ `{ "error": { "code": "...", "message": "..." } }` ดูรายละเอียดที่ [docs/api-contract.md](docs/api-contract.md)
 
-### Backend
+## 16. Demo Flow
 
-```bash
-npm run dev              # dev server → http://localhost:8787
-npm run typecheck        # ตรวจ TypeScript
-npm run db:migrate:local # สร้าง tables ใน local
-npm run db:migrate:remote# apply migrations ขึ้น Cloudflare
-npm run deploy           # deploy ขึ้น Cloudflare Workers
-npm run build:lambda     # build สำหรับ AWS Lambda
-```
+ใช้เหตุ “มีน้ำรั่วตรงบันไดอาคารเรียนและยังมีนักเรียนเดินผ่าน” ที่ `/report` เลือกอาคารและสถานที่ ระบุตำแหน่ง แนบภาพ ตรวจด้วย AI แล้วแก้ผลก่อนสร้าง จาก Dashboard เปิด Incident กำหนด “ฝ่ายอาคารสถานที่” ยืนยัน Priority เริ่มดำเนินการ เพิ่ม progress และปิดเหตุ ตรวจ Closure Summary กับ Timeline
 
-### Frontend
+## 17. Deployment
 
-```bash
-pnpm dev         # dev server → http://localhost:5173
-pnpm typecheck   # ตรวจ TypeScript
-pnpm build       # build production (output: dist/)
-pnpm lint        # ตรวจ ESLint
-```
+Workflow บน `main` ใช้ Node.js 22, npm สำหรับ Backend และ pnpm 8.6.2 สำหรับ Frontend จากนั้น migrate `school-sos-db`, deploy Worker `school-sos-backend` และ Cloudflare Pages
 
----
+ต้องมี GitHub Secrets:
 
-## Resources
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+- `D1_DATABASE_ID`
+- `KV_NAMESPACE_ID`
+- `PAGES_PROJECT_NAME`
+- `VITE_BACKEND_URL`
 
-- [Hono Docs](https://hono.dev/docs/)
-- [Cloudflare Workers](https://developers.cloudflare.com/workers/)
-- [Cloudflare D1](https://developers.cloudflare.com/d1/)
-- [Cloudflare Pages](https://developers.cloudflare.com/pages/)
-- [Vue 3](https://vuejs.org/guide/)
-- [Vuetify](https://vuetifyjs.com/)
-- [Pinia](https://pinia.vuejs.org/)
+ดูขั้นตอนและหน้าที่คน/agent ที่ [deploy-plan.md](deploy-plan.md)
+
+## 18. Known Limitations
+
+- เป็น Demo ที่ทุกคนเข้าถึง URL และแก้ Incident ได้
+- AI ไม่วิเคราะห์ภาพ
+- ไม่มี real-time update หรือ notification
+- Memory repositories ของ Lambda มีข้อมูลชั่วคราว เหมาะกับ build/test ไม่ใช่ production persistence
+- ยังไม่มี Seed Data ตาม Scope รอบแรก
+- DeepSeek live flow ต้องมี secret และ network; fallback ใช้งานได้เสมอ
+
+## 19. Security Note
+
+ห้ามใช้กับข้อมูลสำคัญหรือข้อมูลนักเรียนจริงก่อนเพิ่ม Authentication, Authorization, audit policy และ data retention ที่เหมาะสม ระบบปัจจุบัน validate input ทั้งสองฝั่ง จำกัด MIME/ขนาดภาพ ไม่ใช้ `v-html` กับข้อความผู้ใช้ ไม่ log key/base64/reasoning และเรียก AI ผ่าน Backend เท่านั้น
+
+## 20. Next Development Steps
+
+ก่อน production ควรเพิ่ม Authentication/RBAC, แยกตัวตน actor จาก request body, rate limiting, retention/backup, security review, observability และ integration tests บน Cloudflare environment จริง โดยไม่เปลี่ยน Golden Flow หลัก
+
+หลักฐานคำสั่งและ QA ที่รันจริงอยู่ที่ [docs/qa-evidence.md](docs/qa-evidence.md)

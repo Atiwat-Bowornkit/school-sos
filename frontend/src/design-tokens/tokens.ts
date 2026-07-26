@@ -1,11 +1,11 @@
 export const tokens = {
   color: {
     brand: {
-      primary: '#8C57FF',
-      primaryDarken: '#7E4EE6',
-      secondary: '#8A8D93',
-      secondaryDarken: '#7C7F84',
-      accent: '#FFB400',
+      primary: '#1E40AF',
+      primaryDarken: '#172F82',
+      secondary: '#2563EB',
+      secondaryDarken: '#1D4ED8',
+      accent: '#38BDF8',
     },
     semantic: {
       success: '#56CA00',

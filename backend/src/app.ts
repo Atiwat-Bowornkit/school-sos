@@ -30,15 +30,18 @@ export function createApp(containerFactory: (env: Partial<Bindings>) => Containe
     openAPIRouteHandler(app, {
       documentation: {
         info: {
-          title: 'Starter API',
+          title: 'School SOS API',
           version: '1.0.0',
-          description: 'Hono backend running on Cloudflare Workers (D1 + KV) and AWS Lambda',
+          description: 'Incident reporting and coordination API for School SOS',
         },
-        tags: [{ name: 'Users', description: 'User management' }],
+        tags: [
+          { name: 'Incidents', description: 'Incident workflow and timeline' },
+          { name: 'AI', description: 'Incident analysis with safe fallback' },
+        ],
       },
     })
   )
-  app.get('/docs', Scalar({ url: '/openapi.json', pageTitle: 'Starter API Docs' }))
+  app.get('/docs', Scalar({ url: '/openapi.json', pageTitle: 'School SOS API Docs' }))
 
   app.notFound((c) => c.json({ error: { code: 'NOT_FOUND', message: 'Route not found' } }, 404))
 
@@ -46,8 +49,8 @@ export function createApp(containerFactory: (env: Partial<Bindings>) => Containe
     if (err instanceof AppError) {
       return c.json({ error: { code: err.code, message: err.message } }, err.status as 400)
     }
-    console.error('Unhandled error:', err)
-    return c.json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } }, 500)
+    console.error('Unhandled error:', err instanceof Error ? err.message : 'Unknown error')
+    return c.json({ error: { code: 'INTERNAL_ERROR', message: 'ระบบไม่สามารถดำเนินการได้' } }, 500)
   })
 
   return app

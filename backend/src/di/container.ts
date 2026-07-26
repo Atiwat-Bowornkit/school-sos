@@ -1,20 +1,32 @@
-import type { CacheRepository } from '../domain/repositories/cache-repository'
-import type { UserRepository } from '../domain/repositories/user-repository'
-import { UserHandler } from '../handlers/user-handler'
-import { UserService } from '../services/user-service'
+import type { IncidentImageRepository } from '../domain/repositories/incident-image-repository'
+import type { IncidentRepository } from '../domain/repositories/incident-repository'
+import type { TimelineRepository } from '../domain/repositories/timeline-repository'
+import type { IncidentAiAssistant } from '../domain/services/incident-ai-assistant'
+import { AiHandler } from '../handlers/ai-handler'
+import { IncidentHandler } from '../handlers/incident-handler'
+import { IncidentService } from '../services/incident-service'
 
 export interface Repositories {
-  userRepository: UserRepository
-  cacheRepository: CacheRepository
+  incidentRepository: IncidentRepository
+  timelineRepository: TimelineRepository
+  imageRepository: IncidentImageRepository
+  aiAssistant: IncidentAiAssistant
 }
 
 export interface Container {
-  userHandler: UserHandler
+  incidentHandler: IncidentHandler
+  aiHandler: AiHandler
 }
 
 export function createContainer(repos: Repositories): Container {
-  const userService = new UserService(repos.userRepository, repos.cacheRepository)
+  const incidentService = new IncidentService(
+    repos.incidentRepository,
+    repos.timelineRepository,
+    repos.imageRepository,
+    repos.aiAssistant
+  )
   return {
-    userHandler: new UserHandler(userService),
+    incidentHandler: new IncidentHandler(incidentService),
+    aiHandler: new AiHandler(incidentService),
   }
 }

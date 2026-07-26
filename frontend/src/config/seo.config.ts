@@ -27,27 +27,19 @@ export interface PageSEO {
 
 // Default SEO Configuration
 export const defaultSEO: SEOConfig = {
-  title: 'Fakduai - Web App Starter Template',
-  description: 'A modern, feature-rich Vue 3 + Vuetify admin template with TypeScript support. Build powerful web applications faster with pre-built components and layouts.',
+  title: 'School SOS',
+  description: 'ระบบแจ้ง ประสานงาน และติดตามการแก้ไขปัญหาภายในโรงเรียน',
   keywords: [
-    'vue3',
-    'vuetify',
-    'admin template',
-    'dashboard',
-    'web app',
-    'typescript',
-    'fakduai',
-    'starter template',
-    'vue admin',
+    'School SOS',
+    'แจ้งเหตุ',
+    'โรงเรียน',
+    'ติดตามเหตุ',
   ],
-  author: 'Fakduai',
-  siteUrl: import.meta.env.VITE_APP_URL || 'https://yourdomain.com',
-  siteName: 'Fakduai',
-  twitterHandle: import.meta.env.VITE_TWITTER_HANDLE || '@yourtwitter',
-  locale: 'en_US',
-  themeColor: '#3b82f6',
-  ogImage: '/og-image.png',
-  twitterImage: '/twitter-image.png',
+  author: import.meta.env.VITE_AUTHOR || 'School SOS Team',
+  siteUrl: import.meta.env.VITE_APP_URL || 'http://localhost:5173',
+  siteName: import.meta.env.VITE_SITE_NAME || 'School SOS',
+  locale: 'th_TH',
+  themeColor: import.meta.env.VITE_THEME_COLOR || '#1E40AF',
 }
 
 // Generate full title

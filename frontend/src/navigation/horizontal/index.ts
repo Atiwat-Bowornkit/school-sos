@@ -1,22 +1,12 @@
 export default [
   {
-    title: 'Home',
+    title: 'ภาพรวมเหตุการณ์',
     to: { name: 'root' },
-    icon: { icon: 'ri-home-smile-line' },
+    icon: { icon: 'ri-dashboard-line' },
   },
   {
-    title: 'Second page',
-    to: { name: 'second-page' },
-    icon: { icon: 'ri-file-text-line' },
-  },
-  {
-    title: 'Users',
-    to: { name: 'user-page' },
-    icon: { icon: 'ri-user-3-line' },
-  },
-  {
-    title: 'Products',
-    to: { name: 'product-page' },
-    icon: { icon: 'ri-shopping-bag-3-line' },
+    title: 'แจ้งเหตุใหม่',
+    to: { name: 'report' },
+    icon: { icon: 'ri-alarm-warning-line' },
   },
 ]
