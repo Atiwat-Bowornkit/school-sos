@@ -5,6 +5,8 @@ export interface Bindings {
   DB: D1Database
   KV?: KVNamespace
   ENVIRONMENT?: string
+  JWT_SECRET?: string
+  REGISTRATION_KEY?: string
 }
 
 export interface Variables {

@@ -6,6 +6,8 @@ import { openAPIRouteHandler } from 'hono-openapi'
 import type { Container } from './di/container'
 import { AppError } from './domain/errors'
 import { createApiRouter } from './routers'
+import { createAuthRouter } from './routers/auth-router'
+import { requireAuth } from './middleware/auth'
 import type { AppEnv, Bindings } from './types'
 
 // Runtime-agnostic app factory. Each entrypoint (server.ts, lambda.ts)
@@ -17,14 +19,37 @@ export function createApp(containerFactory: (env: Partial<Bindings>) => Containe
   app.use('*', logger())
   app.use('*', cors())
   app.use('*', async (c, next) => {
-    c.set('container', containerFactory(c.env ?? {}))
+    const container = containerFactory(c.env ?? {})
+    c.set('container', container)
     await next()
   })
 
+  // Health check
   app.get('/health', (c) => c.json({ status: 'ok' }))
-  app.route('/api/v1', createApiRouter())
 
-  // API docs: /docs renders the Scalar UI from the generated OpenAPI spec
+  // Auth routes — /login and /register are public
+  const authRouter = createAuthRouter()
+  // Protect /me endpoint
+  authRouter.use('/me', async (c, next) => {
+    const authService = c.get('container').authService
+    return requireAuth(authService)(c, next)
+  })
+  app.route('/api/v1/auth', authRouter)
+
+  // Protect mutation endpoints on incidents
+  app.use('/api/v1/incidents/*', async (c, next) => {
+    const method = c.req.method
+    if (['PATCH', 'POST', 'PUT', 'DELETE'].includes(method)) {
+      const authService = c.get('container').authService
+      return requireAuth(authService)(c, next)
+    }
+    await next()
+  })
+
+  // Incident routes (some protected by middleware above)
+  app.route('/api/v1/incidents', createApiRouter())
+
+  // API docs
   app.get(
     '/openapi.json',
     openAPIRouteHandler(app, {
@@ -36,6 +61,7 @@ export function createApp(containerFactory: (env: Partial<Bindings>) => Containe
         },
         tags: [
           { name: 'Incidents', description: 'Incident workflow and timeline' },
+          { name: 'Auth', description: 'Authentication' },
         ],
       },
     })

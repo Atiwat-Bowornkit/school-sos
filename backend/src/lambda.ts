@@ -3,12 +3,16 @@
 import { handle } from 'hono/aws-lambda'
 import { createApp } from './app'
 import { createContainer } from './di/container'
+import { MemoryIncidentImageRepository } from './infrastructure/memory/memory-incident-image-repository'
 import { MemoryIncidentRepository } from './infrastructure/memory/memory-incident-repository'
 import { MemoryTimelineRepository } from './infrastructure/memory/memory-timeline-repository'
+import { MemoryUserRepository } from './infrastructure/memory/memory-user-repository'
 
 const container = createContainer({
   incidentRepository: new MemoryIncidentRepository(),
   timelineRepository: new MemoryTimelineRepository(),
+  incidentImageRepository: new MemoryIncidentImageRepository(),
+  userRepository: new MemoryUserRepository(),
 })
 
 const app = createApp(() => container)

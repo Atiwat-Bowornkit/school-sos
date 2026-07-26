@@ -9,6 +9,8 @@ import { categoryLabels, priorityLabels } from '@/utils/incident-labels'
 import { resizeIncidentImage } from '@/utils/image-resize'
 import { validateReportBase } from '@/utils/report-validation'
 
+const MAX_IMAGES = 5
+
 useSEO({
   title: 'แจ้งเหตุใหม่',
   description: 'แจ้งเหตุภายในโรงเรียน',
@@ -26,6 +28,9 @@ const {
   error,
   createdIncident,
 } = storeToRefs(reportStore)
+
+const images = ref<Array<{ name: string; dataUrl: string }>>([])
+const imageError = ref('')
 
 const fieldErrors = reactive<Record<string, string>>({})
 const categoryOptions = INCIDENT_CATEGORIES.map(value => ({ title: categoryLabels[value], value }))
@@ -47,25 +52,38 @@ function validate(): boolean {
   return Object.keys(fieldErrors).length === 0
 }
 
-async function onFileSelected(value: File | File[] | null) {
-  const file = Array.isArray(value) ? value[0] : value
-  if (!file) return
-  delete fieldErrors.image
-  try {
-    const dataUrl = await resizeIncidentImage(file)
-    reportStore.setImage(file.name, dataUrl)
-  } catch (caught) {
-    fieldErrors.image = caught instanceof Error ? caught.message : 'ไม่สามารถอ่านรูปภาพได้'
-    reportStore.removeImage()
+async function onFilesSelected(value: File | File[] | null) {
+  imageError.value = ''
+  const files = value ? (Array.isArray(value) ? value : [value]) : []
+  const totalAfterAdd = images.value.length + files.length
+  if (totalAfterAdd > MAX_IMAGES) {
+    imageError.value = `สามารถแนบรูปได้สูงสุด ${MAX_IMAGES} รูป (ปัจจุบันมี ${images.value.length} รูป)`
+    return
   }
+  for (const file of files) {
+    try {
+      const dataUrl = await resizeIncidentImage(file)
+      images.value.push({ name: file.name, dataUrl })
+    }
+    catch (caught) {
+      imageError.value = caught instanceof Error ? caught.message : 'ไม่สามารถอ่านรูปภาพได้'
+    }
+  }
+}
+
+function removeImage(index: number) {
+  images.value.splice(index, 1)
+  imageError.value = ''
 }
 
 async function submit() {
   if (!validate()) return
   try {
+    reportStore.form.imagesDataUrl = images.value.map(img => img.dataUrl)
     await reportStore.submit()
     notificationStore.showNotification('สร้าง Incident สำเร็จ')
-  } catch {
+  }
+  catch {
     notificationStore.showNotification('ไม่สามารถสร้าง Incident ได้', 'error')
   }
 }
@@ -128,18 +146,45 @@ async function submit() {
         <VTextarea v-model="form.priorityReason" label="เหตุผลของความสำคัญ *" :error-messages="fieldErrors.priorityReason" rows="2" auto-grow />
 
         <VFileInput
-          label="ภาพประกอบ (ไม่บังคับ, 1 ภาพ)"
+          label="ภาพประกอบ (ไม่บังคับ, สูงสุด 5 รูป)"
           accept="image/jpeg,image/png,image/webp"
           prepend-icon="ri-image-add-line"
-          :error-messages="fieldErrors.image"
+          :error-messages="imageError"
+          multiple
           show-size
-          @update:model-value="onFileSelected"
+          :disabled="images.length >= MAX_IMAGES"
+          @update:model-value="onFilesSelected"
         />
-        <div v-if="imagePreview" class="image-preview pa-3 mt-2">
-          <VImg :src="imagePreview" max-height="320" cover :alt="`ภาพแนบ ${imageName}`" />
-          <div class="d-flex align-center justify-space-between mt-2">
-            <span class="text-caption text-medium-emphasis">{{ imageName }}</span>
-            <VBtn color="error" variant="text" size="small" prepend-icon="ri-delete-bin-line" @click="reportStore.removeImage">ลบภาพ</VBtn>
+        <div class="text-caption text-medium-emphasis mt-1 mb-3">
+          แนบแล้ว {{ images.length }} / {{ MAX_IMAGES }} รูป
+        </div>
+
+        <div v-if="images.length > 0" class="image-grid mt-2">
+          <div
+            v-for="(img, index) in images"
+            :key="index"
+            class="image-card"
+          >
+            <VImg
+              :src="img.dataUrl"
+              max-height="180"
+              cover
+              class="rounded border"
+              :alt="`รูปที่ ${index + 1}: ${img.name}`"
+            />
+            <div class="image-card-overlay">
+              <VBtn
+                icon="ri-delete-bin-line"
+                size="small"
+                color="error"
+                variant="flat"
+                @click="removeImage(index)"
+                aria-label="ลบรูป {{ index + 1 }}"
+              />
+            </div>
+            <div class="text-caption text-medium-emphasis text-truncate mt-1">
+              {{ img.name }}
+            </div>
           </div>
         </div>
       </VCardText>
@@ -154,8 +199,29 @@ async function submit() {
 
 <style scoped>
 .report-page { max-inline-size: 900px; }
-.image-preview {
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.image-card {
+  position: relative;
   border: 1px solid rgb(var(--v-theme-on-surface), 0.12);
-  border-radius: 12px;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.image-card-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.image-card:hover .image-card-overlay {
+  opacity: 1;
 }
 </style>

@@ -12,6 +12,7 @@ interface ReportForm {
   reporterName: string
   confirmedPriority: IncidentPriority
   priorityReason: string
+  imagesDataUrl: string[]
 }
 
 function defaults(): ReportForm {
@@ -24,6 +25,7 @@ function defaults(): ReportForm {
     reporterName: '',
     confirmedPriority: 'UNASSIGNED',
     priorityReason: '',
+    imagesDataUrl: [],
   }
 }
 
@@ -33,9 +35,6 @@ function message(error: unknown): string {
 
 export const useReportStore = defineStore('ReportStore', () => {
   const form = reactive<ReportForm>(defaults())
-  const imagePreview = ref<string | null>(null)
-  const imageDataUrl = ref<string | null>(null)
-  const imageName = ref<string | null>(null)
   const isSubmitting = ref(false)
   const error = ref<string | null>(null)
   const createdIncident = ref<Incident | null>(null)
@@ -54,33 +53,22 @@ export const useReportStore = defineStore('ReportStore', () => {
         reporterName: form.reporterName.trim() || undefined,
         confirmedPriority: form.confirmedPriority,
         priorityReason: form.priorityReason,
-        imageDataUrl: imageDataUrl.value ?? undefined,
+        imagesDataUrl: form.imagesDataUrl.length > 0 ? form.imagesDataUrl : undefined,
       })
       createdIncident.value = response.data.incident
       return response.data.incident
-    } catch (caught) {
+    }
+    catch (caught) {
       error.value = message(caught)
       throw caught
-    } finally {
+    }
+    finally {
       isSubmitting.value = false
     }
   }
 
-  function setImage(name: string, dataUrl: string) {
-    imageName.value = name
-    imagePreview.value = dataUrl
-    imageDataUrl.value = dataUrl
-  }
-
-  function removeImage() {
-    imageName.value = null
-    imagePreview.value = null
-    imageDataUrl.value = null
-  }
-
   function reset() {
     Object.assign(form, defaults())
-    removeImage()
     isSubmitting.value = false
     error.value = null
     createdIncident.value = null
@@ -88,14 +76,10 @@ export const useReportStore = defineStore('ReportStore', () => {
 
   return {
     form,
-    imagePreview,
-    imageName,
     isSubmitting,
     error,
     createdIncident,
     submit,
-    setImage,
-    removeImage,
     reset,
   }
 })

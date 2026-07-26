@@ -17,6 +17,7 @@ export interface IncidentResolution {
 export interface IncidentRepository {
   findAll(filters?: IncidentFilters): Promise<Incident[]>
   findById(id: string): Promise<Incident | null>
+  findByCode(code: string): Promise<Incident | null>
   create(incident: Incident): Promise<Incident>
   updateAssignment(id: string, assigneeName: string, updatedAt: string): Promise<Incident | null>
   updatePriority(id: string, priority: IncidentPriority, updatedAt: string): Promise<Incident | null>

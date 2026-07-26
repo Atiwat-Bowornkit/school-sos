@@ -29,8 +29,7 @@ export interface Incident {
   priorityReason: string
   status: IncidentStatus
   assigneeName?: string
-  imageData?: string // base64 encoded, stored in D1
-  imageMimeType?: string
+  imageCount: number
   actionTaken?: string
   resolutionResult?: string
   resolutionNote?: string
@@ -43,6 +42,8 @@ export interface Incident {
 export interface IncidentFilters {
   status?: IncidentStatus
   priority?: IncidentPriority
+  category?: IncidentCategory
+  search?: string
 }
 
 export interface CreateIncidentInput {
@@ -54,7 +55,7 @@ export interface CreateIncidentInput {
   reporterName?: string
   confirmedPriority: IncidentPriority
   priorityReason: string
-  imageDataUrl?: string
+  imagesDataUrl?: string[]
 }
 
 export interface UpdateIncidentInput {

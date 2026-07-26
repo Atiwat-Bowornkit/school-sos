@@ -9,12 +9,15 @@ import type {
   ResolveIncidentInput,
   UpdateIncidentInput,
 } from '../domain/entities/incident'
+import type { IncidentImage } from '../domain/entities/incident-image'
 import type { TimelineEvent, TimelineEventType } from '../domain/entities/incident-timeline'
 import { NotFoundError, ValidationError } from '../domain/errors'
 import type { IncidentRepository } from '../domain/repositories/incident-repository'
+import type { IncidentImageRepository } from '../domain/repositories/incident-image-repository'
 import type { TimelineRepository } from '../domain/repositories/timeline-repository'
 
 const MAX_IMAGE_BYTES = 1024 * 1024
+const MAX_IMAGE_COUNT = 5
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 const transitions: Record<IncidentStatus, IncidentStatus[]> = {
@@ -27,12 +30,14 @@ const transitions: Record<IncidentStatus, IncidentStatus[]> = {
 export interface IncidentDetail {
   incident: Incident
   timeline: TimelineEvent[]
+  images: { id: string; sortOrder: number }[]
 }
 
 export class IncidentService {
   constructor(
     private readonly incidentRepository: IncidentRepository,
     private readonly timelineRepository: TimelineRepository,
+    private readonly imageRepository: IncidentImageRepository,
   ) {}
 
   async listIncidents(filters?: IncidentFilters): Promise<Incident[]> {
@@ -42,14 +47,17 @@ export class IncidentService {
   async getIncident(id: string): Promise<IncidentDetail> {
     const incident = await this.findIncident(id)
     const timeline = await this.timelineRepository.findByIncidentId(id)
-    return { incident, timeline }
+    const images = await this.imageRepository.findByIncidentId(id)
+    return { incident, timeline, images: images.map(img => ({ id: img.id, sortOrder: img.sortOrder })) }
   }
 
   async createIncident(input: CreateIncidentInput): Promise<IncidentDetail> {
     this.validateCreate(input)
     const now = new Date().toISOString()
     const id = crypto.randomUUID()
-    const image = input.imageDataUrl ? this.decodeImage(input.imageDataUrl) : undefined
+
+    // Process images
+    const decodedImages = this.processImages(input.imagesDataUrl)
     const incident: Incident = {
       id,
       incidentCode: this.createIncidentCode(),
@@ -62,13 +70,27 @@ export class IncidentService {
       confirmedPriority: input.confirmedPriority,
       priorityReason: input.priorityReason.trim(),
       status: 'NEW',
-      imageData: image ? `data:${image.mimeType};base64,${image.base64}` : undefined,
-      imageMimeType: image?.mimeType,
+      imageCount: decodedImages.length,
       createdAt: now,
       updatedAt: now,
     }
 
     await this.incidentRepository.create(incident)
+
+    // Store images in the incident_images table
+    for (let i = 0; i < decodedImages.length; i++) {
+      const img = decodedImages[i]!
+      const imageEntity: IncidentImage = {
+        id: crypto.randomUUID(),
+        incidentId: id,
+        imageData: `data:${img.mimeType};base64,${img.base64}`,
+        imageMimeType: img.mimeType,
+        sortOrder: i,
+        createdAt: now,
+      }
+      await this.imageRepository.create(imageEntity)
+    }
+
     await this.record(
       incident.id,
       'INCIDENT_CREATED',
@@ -189,11 +211,39 @@ ${input.resolutionNote ? `หมายเหตุ: ${input.resolutionNote.trim(
     return this.getIncident(id)
   }
 
+  /**
+   * Find an incident by its UUID id or incident code (e.g. SOS-2026-ABC123).
+   * Primarily used for public lookup by incident code.
+   */
+  async findByIdOrCode(codeOrId: string): Promise<IncidentDetail> {
+    // Try UUID lookup first
+    let incident = await this.incidentRepository.findById(codeOrId)
+    if (incident) {
+      const timeline = await this.timelineRepository.findByIncidentId(incident.id)
+      const images = await this.imageRepository.findByIncidentId(incident.id)
+      return { incident, timeline, images: images.map(img => ({ id: img.id, sortOrder: img.sortOrder })) }
+    }
+    // Fallback to incident code lookup
+    incident = await this.incidentRepository.findByCode(codeOrId)
+    if (!incident) throw new NotFoundError('Incident')
+    const timeline = await this.timelineRepository.findByIncidentId(incident.id)
+    const images = await this.imageRepository.findByIncidentId(incident.id)
+    return { incident, timeline, images: images.map(img => ({ id: img.id, sortOrder: img.sortOrder })) }
+  }
+
   async getIncidentImage(id: string): Promise<{ data: string; mimeType: string }> {
     const incident = await this.findIncident(id)
-    if (!incident.imageData || !incident.imageMimeType)
-      throw new NotFoundError('Incident image')
-    return { data: incident.imageData, mimeType: incident.imageMimeType }
+    const images = await this.imageRepository.findByIncidentId(id)
+    if (images.length === 0) throw new NotFoundError('Incident image')
+    return { data: images[0]!.imageData, mimeType: images[0]!.imageMimeType }
+  }
+
+  async getIncidentImageByIndex(id: string, index: number): Promise<{ data: string; mimeType: string }> {
+    const incident = await this.findIncident(id)
+    const images = await this.imageRepository.findByIncidentId(id)
+    const image = images[index]
+    if (!image) throw new NotFoundError('Incident image')
+    return { data: image!.imageData, mimeType: image!.imageMimeType }
   }
 
   private async findIncident(id: string): Promise<Incident> {
@@ -214,6 +264,14 @@ ${input.resolutionNote ? `หมายเหตุ: ${input.resolutionNote.trim(
     if (input.location.trim().length < 3)
       throw new ValidationError('กรุณาระบุสถานที่อย่างน้อย 3 ตัวอักษร')
     if (!input.priorityReason.trim()) throw new ValidationError('กรุณาระบุเหตุผลของ Priority')
+  }
+
+  private processImages(imagesDataUrl?: string[]): { mimeType: string; base64: string }[] {
+    if (!imagesDataUrl || imagesDataUrl.length === 0) return []
+    if (imagesDataUrl.length > MAX_IMAGE_COUNT)
+      throw new ValidationError(`สามารถแนบรูปได้สูงสุด ${MAX_IMAGE_COUNT} รูป`)
+
+    return imagesDataUrl.map(url => this.decodeImage(url))
   }
 
   private decodeImage(dataUrl: string): { data: Uint8Array; mimeType: string; base64: string } {

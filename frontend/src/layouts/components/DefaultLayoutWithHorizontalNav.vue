@@ -46,6 +46,8 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
         v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
         :languages="themeConfig.app.i18n.langConfig"
       />
+
+      <NavbarAuth />
     </template>
 
     <AppLoadingIndicator ref="refLoadingIndicator" />

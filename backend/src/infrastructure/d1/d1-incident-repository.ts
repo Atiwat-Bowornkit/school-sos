@@ -20,8 +20,7 @@ interface IncidentRow {
   priority_reason: string
   status: IncidentStatus
   assignee_name: string | null
-  image_data: string | null
-  image_mime_type: string | null
+  image_count: number | null
   action_taken: string | null
   resolution_result: string | null
   resolution_note: string | null
@@ -34,7 +33,7 @@ interface IncidentRow {
 const SELECT_COLUMNS = `
   id, incident_code, raw_description, title, summary, category, location, reporter_name,
   confirmed_priority, priority_reason, status, assignee_name,
-  image_data, image_mime_type, action_taken,
+  image_count, action_taken,
   resolution_result, resolution_note, closure_summary,
   created_at, updated_at, resolved_at
 `
@@ -53,8 +52,7 @@ function toIncident(row: IncidentRow): Incident {
     priorityReason: row.priority_reason,
     status: row.status,
     assigneeName: row.assignee_name ?? undefined,
-    imageData: row.image_data ?? undefined,
-    imageMimeType: row.image_mime_type ?? undefined,
+    imageCount: row.image_count ?? 0,
     actionTaken: row.action_taken ?? undefined,
     resolutionResult: row.resolution_result ?? undefined,
     resolutionNote: row.resolution_note ?? undefined,
@@ -79,6 +77,15 @@ export class D1IncidentRepository implements IncidentRepository {
       clauses.push('confirmed_priority = ?')
       values.push(filters.priority)
     }
+    if (filters.category) {
+      clauses.push('category = ?')
+      values.push(filters.category)
+    }
+    if (filters.search) {
+      clauses.push('(incident_code LIKE ? OR title LIKE ?)')
+      const q = `%${filters.search}%`
+      values.push(q, q)
+    }
     const where = clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : ''
     const sql = `
       SELECT ${SELECT_COLUMNS} FROM incidents
@@ -102,15 +109,23 @@ export class D1IncidentRepository implements IncidentRepository {
     return row ? toIncident(row) : null
   }
 
+  async findByCode(code: string): Promise<Incident | null> {
+    const row = await this.db
+      .prepare(`SELECT ${SELECT_COLUMNS} FROM incidents WHERE incident_code = ?`)
+      .bind(code)
+      .first<IncidentRow>()
+    return row ? toIncident(row) : null
+  }
+
   async create(incident: Incident): Promise<Incident> {
     await this.db.prepare(`
       INSERT INTO incidents (
         id, incident_code, raw_description, title, summary, category, location, reporter_name,
         confirmed_priority, priority_reason, status, assignee_name,
-        image_data, image_mime_type, action_taken,
+        image_count, action_taken,
         resolution_result, resolution_note, closure_summary,
         created_at, updated_at, resolved_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       incident.id,
       incident.incidentCode,
@@ -124,8 +139,7 @@ export class D1IncidentRepository implements IncidentRepository {
       incident.priorityReason,
       incident.status,
       incident.assigneeName ?? null,
-      incident.imageData ?? null,
-      incident.imageMimeType ?? null,
+      incident.imageCount,
       incident.actionTaken ?? null,
       incident.resolutionResult ?? null,
       incident.resolutionNote ?? null,

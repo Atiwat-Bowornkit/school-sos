@@ -8,6 +8,7 @@ import type {
   Incident,
   IncidentDetail,
   IncidentFilters,
+  IncidentImageInfo,
   ResolveIncidentBody,
   UpdateIncidentBody,
 } from '@/models'
@@ -21,6 +22,7 @@ export const useIncidentStore = defineStore('IncidentStore', () => {
   const incidents = ref<Incident[]>([])
   const selectedIncident = ref<Incident | null>(null)
   const selectedTimeline = ref<IncidentDetail['timeline']>([])
+  const selectedImages = ref<IncidentImageInfo[]>([])
   const filters = ref<IncidentFilters>({})
   const isLoading = ref(false)
   const isSubmitting = ref(false)
@@ -105,6 +107,7 @@ export const useIncidentStore = defineStore('IncidentStore', () => {
   function setSelected(detail: IncidentDetail) {
     selectedIncident.value = detail.incident
     selectedTimeline.value = detail.timeline
+    selectedImages.value = detail.images ?? []
   }
 
   function clearFilters() {
@@ -114,6 +117,7 @@ export const useIncidentStore = defineStore('IncidentStore', () => {
   function resetSelectedIncident() {
     selectedIncident.value = null
     selectedTimeline.value = []
+    selectedImages.value = []
     error.value = null
   }
 
@@ -121,6 +125,7 @@ export const useIncidentStore = defineStore('IncidentStore', () => {
     incidents,
     selectedIncident,
     selectedTimeline,
+    selectedImages,
     filters,
     visibleIncidents,
     newIncidentCount,

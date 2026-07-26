@@ -48,4 +48,13 @@ export function filterIncidents(items: Incident[], filters: IncidentFilters): In
   return items
     .filter(item => !filters.status || item.status === filters.status)
     .filter(item => !filters.priority || item.confirmedPriority === filters.priority)
+    .filter(item => !filters.category || item.category === filters.category)
+    .filter(item => {
+      if (!filters.search) return true
+      const q = filters.search.toLowerCase()
+      return (
+        item.incidentCode.toLowerCase().includes(q) ||
+        item.title.toLowerCase().includes(q)
+      )
+    })
 }

@@ -128,10 +128,23 @@ export function createIncidentRouter() {
   )
 
   router.get(
+    '/lookup/:code',
+    describeRoute({
+      tags: ['Incidents'],
+      summary: 'Lookup incident by incident code (public)',
+      responses: {
+        200: { description: 'Incident found', content: jsonContent(incidentDetailResponseSchema) },
+        404: { description: 'Incident not found', content: jsonContent(errorResponseSchema) },
+      },
+    }),
+    c => c.get('container').incidentHandler.lookupByCode(c)
+  )
+
+  router.get(
     '/:id/image',
     describeRoute({
       tags: ['Incidents'],
-      summary: 'Get the incident image',
+      summary: 'Get the first incident image (backward compat)',
       responses: {
         200: { description: 'Incident image' },
         404: { description: 'Image not found', content: jsonContent(errorResponseSchema) },
@@ -139,6 +152,20 @@ export function createIncidentRouter() {
     }),
     validator('param', idParamSchema),
     c => c.get('container').incidentHandler.image(c)
+  )
+
+  router.get(
+    '/:id/image/:index',
+    describeRoute({
+      tags: ['Incidents'],
+      summary: 'Get an incident image by index',
+      responses: {
+        200: { description: 'Incident image' },
+        404: { description: 'Image not found', content: jsonContent(errorResponseSchema) },
+      },
+    }),
+    validator('param', idParamSchema),
+    c => c.get('container').incidentHandler.imageByIndex(c)
   )
 
   return router

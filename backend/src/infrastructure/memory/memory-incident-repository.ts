@@ -20,12 +20,26 @@ export class MemoryIncidentRepository implements IncidentRepository {
     return [...this.incidents.values()]
       .filter(incident => !filters.status || incident.status === filters.status)
       .filter(incident => !filters.priority || incident.confirmedPriority === filters.priority)
+      .filter(incident => !filters.category || incident.category === filters.category)
+      .filter(incident => {
+        if (!filters.search) return true
+        const q = filters.search.toLowerCase()
+        return incident.incidentCode.toLowerCase().includes(q)
+          || incident.title.toLowerCase().includes(q)
+      })
       .sort((a, b) => priorityRank[a.confirmedPriority] - priorityRank[b.confirmedPriority]
         || b.createdAt.localeCompare(a.createdAt))
   }
 
   async findById(id: string): Promise<Incident | null> {
     return this.incidents.get(id) ?? null
+  }
+
+  async findByCode(code: string): Promise<Incident | null> {
+    for (const incident of this.incidents.values()) {
+      if (incident.incidentCode === code) return incident
+    }
+    return null
   }
 
   async create(incident: Incident): Promise<Incident> {

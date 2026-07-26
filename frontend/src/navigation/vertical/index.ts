@@ -12,4 +12,9 @@ export default [
     to: { name: 'report' },
     icon: { icon: 'ri-alarm-warning-line' },
   },
+  {
+    title: 'ติดตามเหตุ',
+    to: { name: 'track' },
+    icon: { icon: 'ri-search-eye-line' },
+  },
 ]

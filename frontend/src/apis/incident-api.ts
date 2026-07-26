@@ -21,6 +21,10 @@ function queryString(filters?: IncidentFilters): string {
     params.set('status', filters.status)
   if (filters.priority)
     params.set('priority', filters.priority)
+  if (filters.category)
+    params.set('category', filters.category)
+  if (filters.search)
+    params.set('search', filters.search)
   const query = params.toString()
   return query ? `?${query}` : ''
 }
@@ -48,5 +52,7 @@ export const incidentApi = {
     method: 'POST',
     body: JSON.stringify(body),
   }),
+  lookupByCode: (code: string) => request<IncidentDetailResponse>(`${BASE}/lookup/${code}`),
+
   imageUrl: (path?: string) => path ? `${BACKEND_URL}${path}` : undefined,
 }

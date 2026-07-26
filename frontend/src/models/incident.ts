@@ -28,6 +28,7 @@ export interface Incident {
   priorityReason: string
   status: IncidentStatus
   assigneeName?: string
+  imageCount: number
   imageUrl?: string
   actionTaken?: string
   resolutionResult?: string
@@ -59,6 +60,8 @@ export interface TimelineEvent {
 export interface IncidentFilters {
   status?: IncidentStatus
   priority?: IncidentPriority
+  category?: IncidentCategory
+  search?: string
 }
 
 export interface CreateIncidentBody {
@@ -70,7 +73,7 @@ export interface CreateIncidentBody {
   reporterName?: string
   confirmedPriority: IncidentPriority
   priorityReason: string
-  imageDataUrl?: string
+  imagesDataUrl?: string[]
 }
 
 export interface UpdateIncidentBody {
@@ -97,9 +100,16 @@ export interface ResolveIncidentBody {
   actorName?: string
 }
 
+export interface IncidentImageInfo {
+  id: string
+  sortOrder: number
+  url: string
+}
+
 export interface IncidentDetail {
   incident: Incident
   timeline: TimelineEvent[]
+  images: IncidentImageInfo[]
 }
 
 export interface IncidentListResponse {

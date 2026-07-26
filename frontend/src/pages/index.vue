@@ -3,7 +3,7 @@ import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useDisplay } from 'vuetify'
 import type { Incident } from '@/models'
-import { INCIDENT_PRIORITIES, INCIDENT_STATUSES } from '@/models'
+import { INCIDENT_CATEGORIES, INCIDENT_PRIORITIES, INCIDENT_STATUSES } from '@/models'
 import { useSEO } from '@/composables/useSEO'
 import { useIncidentStore } from '@/stores/use-incident-store'
 import {
@@ -45,6 +45,7 @@ const headers = [
 
 const statusOptions = INCIDENT_STATUSES.map(value => ({ title: statusLabels[value], value }))
 const priorityOptions = INCIDENT_PRIORITIES.map(value => ({ title: priorityLabels[value], value }))
+const categoryOptions = INCIDENT_CATEGORIES.map(value => ({ title: categoryLabels[value], value }))
 
 const summary = computed(() => ({
   all: incidents.value.length,
@@ -140,6 +141,16 @@ onMounted(() => incidentStore.fetchIncidents())
       <VCardTitle class="d-flex flex-wrap align-center justify-space-between gap-3 pa-5">
         <span>รายการ Incident</span>
         <div class="d-flex flex-wrap gap-2 filter-controls">
+          <VTextField
+            v-model="filters.search"
+            label="ค้นหา"
+            placeholder="รหัส / ชื่อเหตุ"
+            prepend-inner-icon="ri-search-line"
+            clearable
+            hide-details
+            density="compact"
+            min-width="200"
+          />
           <VSelect
             v-model="filters.status"
             :items="statusOptions"
@@ -147,7 +158,7 @@ onMounted(() => incidentStore.fetchIncidents())
             clearable
             hide-details
             density="compact"
-            min-width="180"
+            min-width="170"
           />
           <VSelect
             v-model="filters.priority"
@@ -156,7 +167,16 @@ onMounted(() => incidentStore.fetchIncidents())
             clearable
             hide-details
             density="compact"
-            min-width="180"
+            min-width="170"
+          />
+          <VSelect
+            v-model="filters.category"
+            :items="categoryOptions"
+            label="หมวด"
+            clearable
+            hide-details
+            density="compact"
+            min-width="200"
           />
           <VBtn variant="text" prepend-icon="ri-filter-off-line" @click="incidentStore.clearFilters">
             ล้างตัวกรอง
@@ -202,8 +222,15 @@ onMounted(() => incidentStore.fetchIncidents())
         >
           <template #[`item.title`]="{ item }">
             <div class="py-2" style="max-inline-size: 260px">
-              <div class="font-weight-medium">
-                {{ item.title }}
+              <div class="d-flex align-center gap-2">
+                <span class="font-weight-medium">{{ item.title }}</span>
+                <VIcon
+                  v-if="item.imageCount > 0"
+                  icon="ri-image-line"
+                  size="16"
+                  color="medium-emphasis"
+                  :title="`${item.imageCount} รูป`"
+                />
               </div>
               <div class="text-caption text-medium-emphasis text-truncate">
                 {{ item.summary }}
@@ -264,6 +291,14 @@ onMounted(() => incidentStore.fetchIncidents())
               <div class="d-flex flex-wrap gap-2 mt-3">
                 <IncidentPriorityChip :priority="incident.confirmedPriority" />
                 <IncidentStatusChip :status="incident.status" />
+                <VChip
+                  v-if="incident.imageCount > 0"
+                  size="small"
+                  variant="tonal"
+                  prepend-icon="ri-image-line"
+                >
+                  {{ incident.imageCount }}
+                </VChip>
               </div>
               <div class="text-caption text-medium-emphasis mt-3">
                 {{ incident.assigneeName || 'ยังไม่ระบุผู้รับผิดชอบ' }} · {{ formatThaiDateTime(incident.createdAt) }}

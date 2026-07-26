@@ -7,9 +7,12 @@ import type {
   ResolveIncidentBody,
 } from '@/models'
 import { INCIDENT_PRIORITIES, INCIDENT_STATUSES } from '@/models'
+import type { IncidentImageInfo } from '@/models'
 import { incidentApi } from '@/apis/incident-api'
+import { BACKEND_URL } from '@/apis/incident-api'
 import { useSEO } from '@/composables/useSEO'
 import { useIncidentStore } from '@/stores/use-incident-store'
+import { useAuthStore } from '@/stores/use-auth-store'
 import { useNotificationStore } from '@/stores/use-notification-store'
 import {
   priorityLabels,
@@ -25,10 +28,12 @@ useSEO({
 
 const route = useRoute()
 const incidentStore = useIncidentStore()
+const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
 const {
   selectedIncident: incident,
   selectedTimeline: timeline,
+  selectedImages,
   isLoading,
   isSubmitting,
   error,
@@ -47,6 +52,19 @@ const pendingStatus = ref<IncidentStatus | null>(null)
 const priorityOptions = INCIDENT_PRIORITIES.map(value => ({ title: priorityLabels[value], value }))
 const statusIndex = (status: IncidentStatus) => INCIDENT_STATUSES.indexOf(status)
 const imageUrl = computed(() => incidentApi.imageUrl(incident.value?.imageUrl))
+const imageUrls = computed(() =>
+  selectedImages.value.map(img => ({
+    url: `${BACKEND_URL}${img.url}`,
+    id: img.id,
+    sortOrder: img.sortOrder,
+  }))
+)
+
+// Active gallery image index
+const activeImageIndex = ref(0)
+const activeImageUrl = computed(() =>
+  imageUrls.value.length > 0 ? imageUrls.value[activeImageIndex.value].url : null
+)
 const id = computed(() => route.path.split('/').filter(Boolean).at(-1) ?? '')
 
 watch(incident, (value) => {
@@ -240,22 +258,41 @@ onBeforeRouteLeave(() => incidentStore.resetSelectedIncident())
                 </div>
 
               </div>
-              <div v-if="imageUrl" class="mt-5">
+              <div v-if="imageUrls.length > 0" class="mt-5">
                 <div class="detail-label mb-2">
-                  ภาพแนบ
+                  ภาพแนบ ({{ imageUrls.length }} รูป)
                 </div>
+
                 <VImg
-                  :src="imageUrl"
+                  v-if="activeImageUrl"
+                  :key="activeImageIndex"
+                  :src="activeImageUrl"
                   max-height="420"
                   cover
                   class="rounded border"
-                  :alt="`ภาพประกอบ ${incident.title}`"
+                  :alt="`ภาพที่ ${activeImageIndex + 1} ของ ${incident.title}`"
                 />
+
+                <div
+                  v-if="imageUrls.length > 1"
+                  class="d-flex flex-wrap gap-2 mt-3"
+                >
+                  <VBtn
+                    v-for="(img, idx) in imageUrls"
+                    :key="img.id"
+                    :color="idx === activeImageIndex ? 'primary' : 'default'"
+                    variant="outlined"
+                    size="small"
+                    @click="activeImageIndex = idx"
+                  >
+                    รูปที่ {{ idx + 1 }}
+                  </VBtn>
+                </div>
               </div>
             </VCardText>
           </VCard>
 
-          <VCard v-if="incident.status === 'IN_PROGRESS'" class="mb-5">
+          <VCard v-if="authStore.isLoggedIn && incident.status === 'IN_PROGRESS'" class="mb-5">
             <VCardTitle class="pa-5">
               บันทึกความคืบหน้า
             </VCardTitle>
@@ -331,7 +368,7 @@ onBeforeRouteLeave(() => incidentStore.resetSelectedIncident())
           </VCard>
         </VCol>
 
-        <VCol cols="12" lg="5">
+        <VCol v-if="authStore.isLoggedIn" cols="12" lg="5">
           <VCard class="mb-5">
             <VCardTitle class="pa-5">
               การจัดการเหตุ

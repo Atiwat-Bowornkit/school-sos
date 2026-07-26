@@ -5,12 +5,29 @@ export class ApiError extends Error {
   }
 }
 
+function getAuthToken(): string | null {
+  try {
+    return localStorage.getItem('school_sos_auth_token')
+  }
+  catch {
+    return null
+  }
+}
+
 export async function request<T>(url: string, init: RequestInit = {}, timeoutMs = 20_000): Promise<T> {
   const controller = new AbortController()
   const timer = window.setTimeout(() => controller.abort(), timeoutMs)
   const headers = new Headers(init.headers)
+
+  // Add auth token if available
+  const token = getAuthToken()
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
+
   if (init.body && !headers.has('Content-Type'))
     headers.set('Content-Type', 'application/json')
+
   let res: Response
   try {
     res = await fetch(url, { ...init, headers, signal: init.signal ?? controller.signal })
@@ -23,6 +40,13 @@ export async function request<T>(url: string, init: RequestInit = {}, timeoutMs 
   finally {
     window.clearTimeout(timer)
   }
+
+  // Handle 401 — clear stored token
+  if (res.status === 401) {
+    localStorage.removeItem('school_sos_auth_token')
+    localStorage.removeItem('school_sos_auth_user')
+  }
+
   const contentType = res.headers.get('content-type') ?? ''
   const isJson = contentType.includes('application/json')
 
