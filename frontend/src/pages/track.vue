@@ -30,7 +30,7 @@ async function lookup() {
   notFound.value = false
   try {
     const response = await incidentApi.lookupByCode(trimmed)
-    incident.value = response.data
+    incident.value = response.data.incident
   }
   catch (caught) {
     if (caught instanceof Error && caught.message.includes('404')) {
